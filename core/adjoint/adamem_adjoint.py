@@ -10,7 +10,7 @@ Across transitions (at recorded event boundaries t_j):
     a_m(t_j^-) = R_j^T a_m(t_j^+)
 """
 
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple, Union
 import numpy as np
 import scipy.special as sp
 import torch
@@ -43,14 +43,16 @@ class AdaMemAdjointFunction(torch.autograd.Function):
         Forward integration saving adaptation history for backward adjoint.
         """
         ctx.f_func = f_func
-        ctx.beta = beta
+        ctx.is_beta_tensor = isinstance(beta, torch.Tensor)
+        beta_val = float(beta.item()) if ctx.is_beta_tensor else float(beta)
+        ctx.beta_val = beta_val
         ctx.use_adjoint_jump = use_adjoint_jump
         ctx.t_grid = t_grid
         ctx.num_params = len(params)
 
         # Solve adaptively
         solver = AdaptiveSOEFDESolver(
-            beta=beta,
+            beta=beta_val,
             tol=tol,
             K_init=K_init,
             K_min=K_min,
@@ -60,9 +62,11 @@ class AdaMemAdjointFunction(torch.autograd.Function):
         with torch.no_grad():
             sol: SolverSolution = solver.solve(f_func, z0, t_grid)
 
-        # Save trajectory, events, and parameters in context
-        ctx.save_for_backward(z0, sol.z, *params)
+        # Save trajectory, events, auxiliary state history, and parameters in context
+        beta_saved = beta if ctx.is_beta_tensor else torch.tensor(beta_val, dtype=z0.dtype, device=z0.device)
+        ctx.save_for_backward(z0, sol.z, beta_saved, *params)
         ctx.events = sol.events
+        ctx.m_history = sol.m_history
         ctx.dt = float((t_grid[1] - t_grid[0]).item())
         ctx.modes_history = sol.modes_history
 
@@ -75,14 +79,18 @@ class AdaMemAdjointFunction(torch.autograd.Function):
         """
         z0 = ctx.saved_tensors[0]
         z_traj = ctx.saved_tensors[1]
-        params = ctx.saved_tensors[2:]
+        beta_tensor = ctx.saved_tensors[2]
+        params = ctx.saved_tensors[3:]
         f_func = ctx.f_func
-        beta = ctx.beta
+        beta = ctx.beta_val
+        is_beta_tensor = ctx.is_beta_tensor
         use_adjoint_jump = ctx.use_adjoint_jump
         t_grid = ctx.t_grid
         dt = ctx.dt
         events = ctx.events
         gamma_factor = 1.0 / sp.gamma(beta)
+        psi_beta = float(sp.digamma(beta))
+        psi_1_beta = float(sp.digamma(1.0 - beta))
 
         N = len(t_grid) - 1
         device = z0.device
@@ -94,6 +102,7 @@ class AdaMemAdjointFunction(torch.autograd.Function):
         # Parameter gradients accumulator
         grad_params = [torch.zeros_like(p) for p in params]
         grad_z0 = torch.zeros_like(z0)
+        grad_beta = torch.zeros((), dtype=dtype, device=device) if is_beta_tensor else None
 
         # Generator to re-obtain SOE weights for each interval
         from core.soe.dyadic_quadrature import DyadicSOEGenerator
@@ -116,6 +125,15 @@ class AdaMemAdjointFunction(torch.autograd.Function):
         w_exp = weights_t.unsqueeze(0).expand(z0.shape + (current_K,))
         a_m = gamma_factor * dL_dz_N.unsqueeze(-1) * w_exp
         grad_z0 = grad_z0 + dL_dz_N
+
+        # Beta gradient contribution at terminal observation t_N
+        if is_beta_tensor and ctx.m_history is not None:
+            m_N = ctx.m_history[N]
+            dw_dbeta_N = weights_t * (psi_1_beta - torch.log(lambdas_t))
+            sum_wm_N = torch.sum(m_N * weights_t, dim=-1)
+            sum_dwm_N = torch.sum(m_N * dw_dbeta_N, dim=-1)
+            dz_dbeta_N = (-psi_beta * gamma_factor) * sum_wm_N + gamma_factor * sum_dwm_N
+            grad_beta = grad_beta + torch.sum(dL_dz_N * dz_dbeta_N)
 
         # Backward integration from N-1 down to 0
         for n in range(N - 1, -1, -1):
@@ -172,6 +190,16 @@ class AdaMemAdjointFunction(torch.autograd.Function):
                 grad_z0 = grad_z0 + dL_dz_n
                 a_m = a_m + gamma_factor * dL_dz_n.unsqueeze(-1) * w_exp
 
+            # Beta gradient contribution at step n
+            if is_beta_tensor and ctx.m_history is not None:
+                m_n = ctx.m_history[n]
+                dw_dbeta = weights_t * (psi_1_beta - torch.log(lambdas_t))
+                sum_wm = torch.sum(m_n * weights_t, dim=-1)
+                sum_dwm = torch.sum(m_n * dw_dbeta, dim=-1)
+                dz_dbeta_n = (-psi_beta * gamma_factor) * sum_wm + gamma_factor * sum_dwm
+                total_sens = grad_output[n] + dt * (vjp_z if vjp_z is not None else 0.0)
+                grad_beta = grad_beta + torch.sum(total_sens * dz_dbeta_n)
+
             # 4. Check for representation transition at step n
             # If step n was an event, forward transition was: m^+ = R m^-
             # Backward adjoint jump is: a_m^- = R^T a_m^+
@@ -198,14 +226,17 @@ class AdaMemAdjointFunction(torch.autograd.Function):
                 lambdas_t, weights_t = current_soe.to_torch(dtype=dtype, device=device)
                 w_exp = weights_t.unsqueeze(0).expand(z0.shape + (current_K,))
 
-        return (None, grad_z0, None, None, None, None, None, None, None, *grad_params)
+        if grad_beta is not None:
+            grad_beta = grad_beta.reshape_as(beta_tensor)
+
+        return (None, grad_z0, None, grad_beta, None, None, None, None, None, *grad_params)
 
 
 def adamem_integrate(
     f: Callable[[torch.Tensor, float], torch.Tensor],
     z0: torch.Tensor,
     t_grid: torch.Tensor,
-    beta: float,
+    beta: Union[float, torch.Tensor],
     tol: float = 1e-4,
     K_init: int = 12,
     K_min: int = 4,

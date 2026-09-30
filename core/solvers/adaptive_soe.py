@@ -28,6 +28,7 @@ class SolverSolution:
     avg_modes: float                    # \bar{K}
     max_modes: int                      # K_{max}
     num_adaptations: int                # N_{adapt}
+    m_history: Optional[List[torch.Tensor]] = None # History of auxiliary states
 
 
 class AdaptiveSOEFDESolver:
@@ -133,6 +134,7 @@ class AdaptiveSOEFDESolver:
         # Initial auxiliary memory states: m_k(0) = 0, shape (..., d, K_init)
         m_shape = z0.shape + (controller.current_K,)
         m = torch.zeros(m_shape, dtype=dtype, device=device)
+        m_history = []
 
         # ETD operators for initial modes
         E, phi_1, phi_2 = self._compute_etd_operators(controller.lambdas_t, dt)
@@ -143,6 +145,7 @@ class AdaptiveSOEFDESolver:
 
             # 1. Error check and dynamic memory adaptation at step boundary
             m, event = controller.step_adaptation(step_idx=n, t=t_curr, m_state=m)
+            m_history.append(m.clone())
 
             # If adaptation occurred, recompute ETD operators for the updated modes
             if event is not None:
@@ -164,8 +167,9 @@ class AdaptiveSOEFDESolver:
             # 4. State reconstruction at t_{n+1}
             z[n + 1] = z0 + gamma_factor * torch.sum(m * w, dim=-1)
 
-        # Log final mode
+        # Log final mode and auxiliary state
         controller.active_modes_history.append(controller.current_K)
+        m_history.append(m.clone())
 
         return SolverSolution(
             z=z,
@@ -176,4 +180,5 @@ class AdaptiveSOEFDESolver:
             avg_modes=controller.average_modes,
             max_modes=controller.max_modes,
             num_adaptations=len(controller.events),
+            m_history=m_history,
         )
