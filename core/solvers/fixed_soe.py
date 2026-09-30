@@ -82,7 +82,8 @@ class FixedSOEFDESolver:
         gamma_factor = 1.0 / sp.gamma(self.beta)
 
         self._ensure_weights(dt, T_horizon, dtype, device)
-        K = self.num_modes
+        K = len(self.lambdas_t)
+        self.num_modes = K
 
         # Precompute ETD operators:
         # For dot{m}_k = -\lambda_k m_k + F:

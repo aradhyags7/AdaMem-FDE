@@ -29,7 +29,7 @@ def run_tolerance_sweep_mittag_leffler(
     T: float = 4.0,
     N: int = 400,
     tolerances: list = [1e-2, 5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5],
-    fixed_modes: list = [6, 10, 14, 18, 22, 26, 30, 36],
+    fixed_modes: list = [4, 8, 12, 16, 20, 24, 28, 32, 36, 40],
 ):
     """
     Evaluates Pareto trade-off on analytical Mittag-Leffler decay where ground truth is known.
@@ -160,7 +160,7 @@ def run_tolerance_pareto_experiment(save_dir: str = "results"):
     print("=" * 84)
 
     tolerances = [1e-2, 5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
-    fixed_modes = [6, 10, 14, 18, 22, 26, 30, 36]
+    fixed_modes = [4, 8, 12, 16, 20, 24, 28, 32, 36, 40]
 
     fixed_res, adapt_res = run_tolerance_sweep_mittag_leffler(
         beta=0.7, T=4.0, N=400, tolerances=tolerances, fixed_modes=fixed_modes

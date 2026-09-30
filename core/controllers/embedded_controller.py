@@ -78,11 +78,10 @@ class MemoryErrorController:
 
         self.generator = DyadicSOEGenerator(gl_order=gl_order)
 
-        # Initialize current active SOE representation
-        self.current_K = K_init
         self.current_soe = self.generator.generate(
-            beta=beta, delta_t=delta_t, T=T, tol=tol, num_modes=self.current_K
+            beta=beta, delta_t=delta_t, T=T, tol=tol, num_modes=K_init
         )
+        self.current_K = len(self.current_soe.lambdas)
         self.lambdas_t, self.weights_t = self.current_soe.to_torch(dtype=dtype, device=device)
 
         # Higher-order shadow representation for embedded error estimation
@@ -191,6 +190,7 @@ class MemoryErrorController:
         new_soe = self.generator.generate(
             beta=self.beta, delta_t=self.delta_t, T=self.T, tol=self.tol, num_modes=new_K
         )
+        new_K = len(new_soe.lambdas)
 
         # Compute Cauchy-Gram projection matrix R: R^{old_K} -> R^{new_K}
         R = compute_projection_matrix(old_soe.lambdas, new_soe.lambdas).to(
