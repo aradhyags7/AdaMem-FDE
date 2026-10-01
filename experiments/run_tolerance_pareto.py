@@ -186,10 +186,10 @@ def run_tolerance_pareto_experiment(save_dir: str = "results"):
     ada_err = [r["error"] for r in adapt_res]
 
     ax1.semilogy(fix_k, fix_err, "r--s", lw=2, ms=6, label="Fixed-Order SOE Baseline")
-    ax1.semilogy(ada_k, ada_err, "b-o", lw=2.5, ms=7, label="AdaMem-FDE (Pareto Frontier)")
-    ax1.set_xlabel("Memory Complexity: Average Modes \\bar{K}", fontsize=11)
-    ax1.set_ylabel("Forward Error E_z (log scale)", fontsize=11)
-    ax1.set_title("(a) Accuracy vs. Memory Modes \\bar{K}", fontsize=12, fontweight="bold")
+    ax1.semilogy(ada_k, ada_err, "b-o", lw=2.5, ms=7, label="AdaMem-FDE (Adaptive)")
+    ax1.set_xlabel(r"Memory Complexity: Average Modes $\bar{K}$", fontsize=11)
+    ax1.set_ylabel(r"Forward Relative Error $E_z$", fontsize=11)
+    ax1.set_title(r"(a) Accuracy vs. Memory Modes $\bar{K}$", fontsize=12, fontweight="bold")
     ax1.grid(True, alpha=0.3, which="both")
     ax1.legend(fontsize=9, loc="upper right")
 
@@ -200,8 +200,8 @@ def run_tolerance_pareto_experiment(save_dir: str = "results"):
     ax2.loglog(fix_t, fix_err, "r--s", lw=2, ms=6, label="Fixed-Order SOE Baseline")
     ax2.loglog(ada_t, ada_err, "b-o", lw=2.5, ms=7, label="AdaMem-FDE (Adaptive)")
     ax2.set_xlabel("Runtime (ms, log scale)", fontsize=11)
-    ax2.set_ylabel("Forward Error E_z (log scale)", fontsize=11)
-    ax2.set_title("(b) Accuracy vs. Computational Runtime", fontsize=12, fontweight="bold")
+    ax2.set_ylabel(r"Forward Relative Error $E_z$", fontsize=11)
+    ax2.set_title(r"(b) Accuracy vs. Computational Runtime (Python)", fontsize=12, fontweight="bold")
     ax2.grid(True, alpha=0.3, which="both")
     ax2.legend(fontsize=9, loc="upper right")
 
@@ -209,11 +209,11 @@ def run_tolerance_pareto_experiment(save_dir: str = "results"):
     ada_tol = [r["tol"] for r in adapt_res]
     ada_max = [r["max_modes"] for r in adapt_res]
 
-    ax3.semilogx(ada_tol, ada_k, "b-o", lw=2.2, ms=7, label="Average Modes \\bar{K}")
-    ax3.semilogx(ada_tol, ada_max, "m--^", lw=1.8, ms=6, label="Maximum Modes K_{max}")
-    ax3.set_xlabel("Prescribed Memory Tolerance \\epsilon_{tol}", fontsize=11)
+    ax3.semilogx(ada_tol, ada_k, "b-o", lw=2.2, ms=7, label=r"Average Modes $\bar{K}$")
+    ax3.semilogx(ada_tol, ada_max, "m--^", lw=1.8, ms=6, label=r"Maximum Modes $K_{\max}$")
+    ax3.set_xlabel(r"Prescribed Memory Tolerance $\epsilon_{\mathrm{tol}}$", fontsize=11)
     ax3.set_ylabel("Active Memory Modes", fontsize=11)
-    ax3.set_title("(c) Dynamic Mode Allocation vs. Tolerance", fontsize=12, fontweight="bold")
+    ax3.set_title(r"(c) Dynamic Mode Allocation vs. Tolerance", fontsize=12, fontweight="bold")
     ax3.grid(True, alpha=0.3)
     ax3.legend(fontsize=9, loc="upper right")
 
@@ -221,10 +221,10 @@ def run_tolerance_pareto_experiment(save_dir: str = "results"):
     g_tol = [r["tol"] for r in grad_res]
     g_err = [r["grad_err"] for r in grad_res]
 
-    ax4.semilogx(g_tol, g_err, "teal", marker="D", lw=2.0, ms=7, label="Adjoint Error E_g")
-    ax4.set_xlabel("Prescribed Memory Tolerance \\epsilon_{tol}", fontsize=11)
-    ax4.set_ylabel("Relative Gradient Error E_g", fontsize=11)
-    ax4.set_title("(d) Gradient Fidelity vs. Memory Tolerance", fontsize=12, fontweight="bold")
+    ax4.semilogx(g_tol, g_err, "teal", marker="D", lw=2.0, ms=7, label=r"Adjoint Error $E_g$")
+    ax4.set_xlabel(r"Prescribed Memory Tolerance $\epsilon_{\mathrm{tol}}$", fontsize=11)
+    ax4.set_ylabel(r"Relative Gradient Error $E_g$", fontsize=11)
+    ax4.set_title(r"(d) Gradient Fidelity vs. Memory Tolerance", fontsize=12, fontweight="bold")
     ax4.grid(True, alpha=0.3)
     ax4.legend(fontsize=9, loc="upper left")
 
