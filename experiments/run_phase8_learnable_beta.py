@@ -68,8 +68,12 @@ class ParameterizedOscillator(nn.Module):
 
 
 # --------------------------------------------------------------------------- data
-def make_truth():
-    """High-fidelity reference trajectory, subsampled to the fitting grid."""
+def make_truth(stride: int = REFINE):
+    """High-fidelity reference trajectory, subsampled to the fitting grid.
+
+    stride must divide N_STEPS * REFINE (=600): 10 -> 60 fit steps, 5 -> 120, 2 -> 300, 1 -> 600.
+    """
+    assert (N_STEPS * REFINE) % stride == 0, "fit stride must divide 600"
     fine = torch.linspace(0.0, T_END, N_STEPS * REFINE + 1, dtype=torch.float64)
     z0 = torch.tensor([1.0, 0.0], dtype=torch.float64)
     system = ParameterizedOscillator(TRUE_OMEGA2, TRUE_MU)
@@ -77,7 +81,7 @@ def make_truth():
         z_fine = adamem_integrate(
             system, z0, fine, beta=TRUE_BETA, tol=1e-5, K_init=16, K_min=4, K_max=40
         )
-    return fine[::REFINE].clone(), z_fine[::REFINE].clone()
+    return fine[::stride].clone(), z_fine[::stride].clone()
 
 
 def make_observations(z_true: torch.Tensor, seed: int, sigma_rel: float) -> torch.Tensor:
@@ -102,6 +106,7 @@ def _init_worker():
 
 def run_task(spec: dict) -> dict:
     mode, seed, beta0, epochs = spec["mode"], spec["seed"], spec["beta0"], spec["epochs"]
+    tol, k_max = spec["tol"], spec["k_max"]
     t_grid = torch.from_numpy(spec["t_grid"])
     z_obs = torch.from_numpy(spec["z_obs"])
     z0 = z_obs[0].clone()
@@ -118,10 +123,10 @@ def run_task(spec: dict) -> dict:
         vector_field=field,
         beta=beta0,
         learnable_beta=learn_beta,
-        default_tol=FIT_TOL,
-        K_init=FIT_K_INIT,
+        default_tol=tol,
+        K_init=min(FIT_K_INIT, k_max),
         K_min=FIT_K_MIN,
-        K_max=FIT_K_MAX,
+        K_max=k_max,
     )
 
     field_params = [p for p in field.parameters() if p.requires_grad]
@@ -142,7 +147,7 @@ def run_task(spec: dict) -> dict:
         for o in (opt_f, opt_b):
             if o is not None:
                 o.zero_grad()
-        pred = model(z0, t_grid, method="adamem", tol=FIT_TOL)
+        pred = model(z0, t_grid, method="adamem", tol=tol)
         loss = torch.mean((pred - z_obs) ** 2)
         if not torch.isfinite(loss):
             diverged = True
@@ -287,19 +292,24 @@ def main():
     ap.add_argument("--noise", type=float, default=0.01, help="relative noise std (0 = noiseless)")
     ap.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 4) - 2))
     ap.add_argument("--diagnostic", action="store_true", help="add beta-only (field frozen at truth) arm")
+    ap.add_argument("--fit-stride", type=int, default=REFINE,
+                    help="fit grid = truth grid subsampled by this (10->60 steps, 5->120, 2->300, 1->600)")
+    ap.add_argument("--fit-tol", type=float, default=FIT_TOL, help="controller tol of the fitted model")
+    ap.add_argument("--fit-kmax", type=int, default=FIT_K_MAX, help="K_max of the fitted model")
     ap.add_argument("--save-dir", default="results")
     args = ap.parse_args()
     os.makedirs(args.save_dir, exist_ok=True)
 
     seeds = [42, 101, 202, 303, 404, 505, 606, 707][: args.seeds]
-    t_grid, z_true = make_truth()
+    t_grid, z_true = make_truth(args.fit_stride)
     t_np = t_grid.numpy()
 
     specs = []
     for s in seeds:
         z_obs = make_observations(z_true, s, args.noise).numpy()
         init = random_init(s)
-        base = {"seed": s, "epochs": args.epochs, "t_grid": t_np, "z_obs": z_obs, "init": init}
+        base = {"seed": s, "epochs": args.epochs, "t_grid": t_np, "z_obs": z_obs, "init": init,
+                "tol": args.fit_tol, "k_max": args.fit_kmax}
         for b0 in INIT_BETAS:
             specs.append({**base, "mode": "joint", "beta0": b0})
         specs.append({**base, "mode": "fixed", "beta0": 0.50})
@@ -308,8 +318,9 @@ def main():
             for b0 in INIT_BETAS:
                 specs.append({**base, "mode": "beta_only", "beta0": b0})
 
+    n_fit = len(t_np) - 1
     print(f"Phase VIII | {len(specs)} runs | {args.workers} workers | {args.epochs} epochs | "
-          f"noise={args.noise:g} | seeds={seeds}")
+          f"noise={args.noise:g} | seeds={seeds} | fit: N={n_fit}, tol={args.fit_tol:g}, K_max={args.fit_kmax}")
     t0 = time.time()
     with ProcessPoolExecutor(max_workers=args.workers, initializer=_init_worker) as pool:
         results = list(pool.map(run_task, specs))
@@ -317,7 +328,7 @@ def main():
 
     groups = summarize(results, args.noise)
 
-    tag = f"noise{args.noise:g}"
+    tag = f"noise{args.noise:g}_N{n_fit}_tol{args.fit_tol:g}_K{args.fit_kmax}"
     with open(os.path.join(args.save_dir, f"phase8_multiseed_{tag}.json"), "w") as f:
         json.dump(results, f)
     out_png = os.path.join(args.save_dir, f"phase8_joint_beta_discovery_{tag}.png")
