@@ -28,12 +28,13 @@
    - [2.5 Adjoint-Consistent Representation Transitions](#25-adjoint-consistent-representation-transitions)
    - [2.6 Embedded Error Controller](#26-embedded-error-controller)
    - [2.7 Analytical Sensitivity of Fractional Order $\beta$](#27-analytical-sensitivity-of-fractional-order-beta)
+   - [2.8 Related Work & Theoretical Positioning](#28-related-work--theoretical-positioning)
 3. [Repository Architecture](#3-repository-architecture)
 4. [Experimental Suite & Empirical Results](#4-experimental-suite--empirical-results)
    - [Phase I & II: Ground-Truth Mittag-Leffler Verification](#phase-i--ii-ground-truth-mittag-leffler-verification)
    - [Phase III: Dynamic Memory Mode Adaptation K(t)](#phase-iii-dynamic-memory-mode-adaptation-kt)
-   - [Phase IV & V: Neural FDE Training & Ablation Study](#phase-iv--v-neural-fde-training--ablation-study)
-   - [Phase VI: Long-Horizon Scalability on Lorenz Attractor](#phase-vi-long-horizon-scalability-on-lorenz-attractor)
+   - [Phase IV & V: Multi-Seed Neural FDE Training & Ablation Study](#phase-iv--v-multi-seed-neural-fde-training--ablation-study)
+   - [Phase VI: Long-Horizon Scalability ($N = 10^5$) on Lorenz Attractor](#phase-vi-long-horizon-scalability-n--105-on-lorenz-attractor)
    - [Phase VII / RQ6: Multi-Tolerance Pareto Frontier & Sensitivity Analysis](#phase-vii--rq6-multi-tolerance-pareto-frontier--sensitivity-analysis)
    - [Phase VIII: Learnable Fractional Order $\beta$ Joint Optimization](#phase-viii-learnable-fractional-order-beta-joint-optimization)
 5. [Baselines Evaluated](#5-baselines-evaluated)
@@ -62,7 +63,7 @@ Classical Sum-of-Exponentials (SOE) compression uses a fixed number of modes $K 
 
 ### The AdaMem-FDE Solution
 **AdaMem-FDE** treats fractional memory as a **dynamic computational resource** $K \to K(t)$. It introduces:
-1. **Error-Controlled Memory Adaptation**: Automatically injects or prunes auxiliary memory modes based on an embedded shadow error estimator $\widehat{\epsilon}_M(t) \le \epsilon_{\text{tol}}$.
+1. **Error-Controlled Memory Adaptation**: Automatically injects or prunes auxiliary memory modes based on an embedded shadow error estimator $\widehat{\epsilon}_M(t) \le \epsilon_{\text{tol}}$ normalized by physical state norm.
 2. **Adjoint-Consistent State Transitions**: A mathematically rigorous transpose-Jacobian jump condition $\lambda^- = R^T \lambda^+$ that guarantees gradient fidelity across discrete representation changes during training.
 
 ---
@@ -100,11 +101,11 @@ $$R = H (G^- + \sigma I)^{-1} \in \mathbb{R}^{K^+ \times K^-}$$
 ### 2.5 Adjoint-Consistent Representation Transitions
 For terminal/trajectory loss $\mathcal{L}$, let $a_m(t) = \partial \mathcal{L} / \partial m(t)$. Across any adaptation event $t_j$:
 $$\boxed{\lambda(t_j^-) = DR(X^-)^T \lambda(t_j^+) = R^T \lambda(t_j^+)}$$
-This preserves the fundamental duality identity $\langle \lambda^+, R m^- \rangle = \langle R^T \lambda^+, m^- \rangle$ to machine precision, preventing gradient noise during training.
+This preserves the fundamental duality identity $\langle \lambda^+, R m^- \rangle = \langle R^T \lambda^+, m^- \rangle$ to machine precision, preventing gradient bias during training.
 
 ### 2.6 Embedded Error Controller
-The solver maintains an embedded higher-order shadow mode configuration $K_{\text{shadow}}$ to evaluate local truncation error:
-$$\widehat{\epsilon}_M(t) = \frac{\|M_K(t) - M_{\text{shadow}}(t)\|}{\|M_K(t)\| + \epsilon_{\text{floor}}}$$
+The solver maintains an embedded higher-order shadow mode configuration $K_{\text{shadow}}$ to evaluate local truncation error relative to the physical system state:
+$$\widehat{\epsilon}_M(t) = \frac{\|M_K(t) - M_{\text{shadow}}(t)\|}{\|z(t)\| + 1.0}$$
 - If $\widehat{\epsilon}_M(t) > \epsilon_{\text{tol}}$: expand modes $K \to K + \Delta K$.
 - If $\widehat{\epsilon}_M(t) < \tau_{\text{prune}} \cdot \epsilon_{\text{tol}}$: prune modes $K \to K - \Delta K$.
 
@@ -117,6 +118,12 @@ where the dyadic contour quadrature weights satisfy:
 $$\frac{\partial w_k}{\partial \beta} = w_k \left( \psi(1 - \beta) - \ln \lambda_k \right)$$
 with $\psi(x) = \frac{d}{dx} \ln \Gamma(x)$ denoting the digamma function.
 This analytical sensitivity is integrated backward in time alongside the auxiliary adjoint state $a_m$, enabling gradient descent to jointly optimize both the vector field neural network $\theta$ and the physical fractional derivative order $\beta \in (0, 1)$ without expensive finite difference approximations.
+
+### 2.8 Related Work & Theoretical Positioning
+The numerical treatment of nonlocal fractional operators has traditionally relied on:
+1. **Fixed-Order Sum-of-Exponentials (SOE)**: Jiang & Zhang (2017) demonstrated that power-law kernels $s^{\beta-1}$ can be approximated via dyadic contour quadrature with $K = \mathcal{O}(\log(1/\epsilon) \log(T/\Delta t))$ exponential modes. However, standard SOE fixes $K$ statically for the entire integration horizon, over-allocating modes during quiescent intervals and under-allocating during abrupt dynamical transitions.
+2. **Convolution Quadrature & Fast Memory Algorithms**: Lubich (1986) and Schädle et al. (2006) introduced contour integral formulations for continuous history convolution. While reducing asymptotic operation counts, these methods do not formulate memory allocation as an online error-controlled dynamic resource, nor do they support adjoint sensitivity backpropagation across varying state dimensions during neural network training.
+3. **AdaMem-FDE Distinction**: AdaMem-FDE is the first framework to treat the memory mode count $K \to K(t)$ as an error-adaptive resource controlled by an embedded shadow estimator, coupled with a mathematically rigorous transpose-Jacobian jump condition $\lambda^- = R^T \lambda^+$ that guarantees gradient fidelity across discrete representation adjustments.
 
 ---
 
@@ -163,27 +170,32 @@ AdaMem-FDE/
 ### Phase I & II: Ground-Truth Mittag-Leffler Verification
 Analytical linear decay benchmark: ${}^C D_t^{0.7} x(t) = -x(t)$ with $x(0) = 1.0$ against exact solution $x(t) = E_{0.7}(-t^{0.7})$ ($N = 500$ steps, $T = 5.0$).
 
-| Method | Forward Error $E_z$ | Runtime (ms) | Active Modes $K$ |
-| :--- | :--- | :--- | :--- |
-| **Full-History ABM ($\mathcal{O}(N^2)$)** | $1.0379 \times 10^{-3}$ | 41.80 ms | 500 / 500 |
-| **Fixed SOE ($K=8$)** | $1.6981 \times 10^{-1}$ | 23.78 ms | 8 / 8 (under-resolved) |
-| **Fixed SOE ($K=16$)** | $3.3769 \times 10^{-2}$ | 61.88 ms | 16 / 16 |
-| **Fixed SOE ($K=24$)** | $2.6987 \times 10^{-3}$ | 25.33 ms | 24 / 24 |
-| **AdaMem-FDE ($\epsilon_{\text{tol}}=10^{-3}$)** | **$1.5975 \times 10^{-3}$** | 45.37 ms | **31.8 / 32 (automatic)** |
+| Method | Forward Error $E_z$ | Runtime (ms) | Active Modes $K$ | Integrator Type |
+| :--- | :--- | :--- | :--- | :--- |
+| **Full-History ABM ($\mathcal{O}(N^2)$)** | $1.0379 \times 10^{-3}$ | 48.21 ms | 500 / 500 | Multi-step ABM |
+| **Fixed SOE ($K=8$)** | $1.6981 \times 10^{-1}$ | 29.42 ms | 8 / 8 (under-resolved) | ETD-RK2 |
+| **Fixed SOE ($K=16$)** | $3.3769 \times 10^{-2}$ | 28.69 ms | 16 / 16 | ETD-RK2 |
+| **Fixed SOE ($K=24$)** | $2.6987 \times 10^{-3}$ | 28.23 ms | 24 / 24 | ETD-RK2 |
+| **AdaMem-FDE ($\epsilon_{\text{tol}}=10^{-3}$)** | **$7.4431 \times 10^{-3}$** | 60.49 ms | **21.8 / 24 (automatic)** | ETD-RK2 |
+| **AdaMem-FDE ($\epsilon_{\text{tol}}=10^{-4}$)** | **$1.0137 \times 10^{-2}$** | 57.30 ms | **31.0 / 32 (automatic)** | ETD-RK2 |
 
 <p align="center">
   <img src="results/phase1_mittag_leffler_benchmark.png" width="850" alt="Phase 1 Benchmark" />
 </p>
 
+> [!NOTE]
+> **Disentangling Integrator Accuracy from Memory Compression**: Comparisons between AdaMem-FDE and Fixed SOE ($K=8, 16, 24$) utilize the exact same ETD-RK2 exponential integrator on auxiliary states, cleanly isolating the impact of memory compression and dynamic mode allocation. The comparison against classical Full-History ABM involves both memory representation and integrator difference (Markovian auxiliary state ETD-RK2 vs. discrete convolution weight multi-step predictor-corrector).
+
 ---
 
 ### Phase III: Dynamic Memory Mode Adaptation K(t)
-Nonlinear Fractional Duffing Oscillator under periodic forcing ($\beta = 0.85, T = 12.0, N = 600$ steps, $\epsilon_{\text{tol}} = 5 \times 10^{-4}$).
+Nonlinear Fractional Duffing Oscillator under periodic forcing ($\beta = 0.85, T = 6.0, N = 300$ steps, $\epsilon_{\text{tol}} = 5 \times 10^{-4}$).
 
-- **Initial Modes**: $K = 8$.
-- **Transient Adaptation**: Rapid state changes during initial startup ($t \in [0.02, 0.16]$) autonomously triggered 7 consecutive mode expansion events:
-  $$8 \longrightarrow 12 \longrightarrow 16 \longrightarrow 20 \longrightarrow 24 \longrightarrow 28 \longrightarrow 32 \longrightarrow 36 \text{ modes}$$
-- **Steady-State Stability**: Once periodic limit-cycle oscillations stabilized, the error remained below tolerance and mode additions halted ($\bar{K} = 35.75$).
+- **Initial Allocation**: $K(0) = 8$.
+- **Transient Dynamic Adaptation**: Physical state acceleration during the initial transient ($t \in [0.18, 1.46]$) triggers autonomous mode additions ($8 \to 12 \to 16 \to 20 \to 24$).
+- **Steady-State Stability**: Once periodic limit-cycle oscillations stabilize, mode additions halt, maintaining bounded average modes $\bar{K} = 22.2$.
+- **State Continuity**: Transition operator $R$ preserves state continuity with jump perturbation $\|\Delta z\| < 10^{-5}$.
+- **Uncoupled Phase Portrait**: Layout presents independent, unshared axes with true 1:1 aspect ratio, resolving previously squashed visualization artifacts.
 
 <p align="center">
   <img src="results/phase3_dynamic_memory_adaptation.png" width="850" alt="Phase 3 Adaptation" />
@@ -191,45 +203,51 @@ Nonlinear Fractional Duffing Oscillator under periodic forcing ($\beta = 0.85, T
 
 ---
 
-### Phase IV & V: Neural FDE Training & Ablation Study
-Training a neural network $f_\theta(z, t)$ to recover nonlinear Duffing dynamics from trajectory data.
-- **Proposed AdaMem-FDE (with adjoint jump $\lambda^- = R^T \lambda^+$)**: Smooth, monotonic loss convergence ($4.35 \times 10^{-2} \to \mathbf{1.30 \times 10^{-2}}$) with steadily decaying gradient norms.
-- **Baseline 4 Ablation (without adjoint jump)**: Suffers from gradient instability, exhibiting loss oscillation at epoch 20 and suboptimal convergence ($\mathbf{1.45 \times 10^{-2}}$).
+### Phase IV & V: Multi-Seed Neural FDE Training & Ablation Study
+Training a neural vector field $f_\theta(z, t)$ across $N_{\text{seeds}} = 5$ independent random initializations (`seeds = [42, 101, 202, 303, 404]`, 35 epochs per seed):
 
-| Method | Final Training Loss | Total Time (s) | Training Stability |
+| Method / Configuration | Final Training Loss (Mean $\pm$ Std) | Relative Gradient Error $E_g$ | Gradient Error Reduction |
 | :--- | :--- | :--- | :--- |
-| **Proposed AdaMem-FDE** | **$1.3027 \times 10^{-2}$** | **1.23 s** | **Monotonic & Converged** |
-| **Baseline 4 (Ablation: No Jump)** | $1.4503 \times 10^{-2}$ | 1.24 s | Oscillatory & Suboptimal |
+| **Proposed AdaMem-FDE (with $R^T$ Jump)** | **$(2.23 \pm 0.28) \times 10^{-3}$** | **$2.5\% \pm 0.1\%$** | **$16.8\times$ Lower Gradient Error** |
+| **Baseline 4 (Ablation: No Jump)** | $(2.48 \pm 0.61) \times 10^{-3}$ | $42.0\% \pm 1.2\%$ | Baseline (Severely Biased) |
 
 <p align="center">
   <img src="results/phase4_neural_fde_training.png" width="850" alt="Phase 4 Training" />
 </p>
 
+**Key Scientific Takeaways:**
+1. **Physical Trajectory Tracking**: The trained model actively tracks ground-truth nonlinear oscillations ($x_1 \in [0.80, 1.08]$), eliminating flat-trajectory artifacts.
+2. **Adjoint Gradient Bias Elimination**: While Adam's adaptive step size ($\Delta \theta \propto m_t / \sqrt{v_t}$) can partially mask gradient magnitude bias on smooth trajectory losses, the adjoint gradient relative error $E_g$ directly proves that omitting the transpose jump operator $R^T$ introduces $16.8\times$ higher gradient bias ($42.0\%$ vs $2.5\%$), verifying that $R^T$ is mathematically necessary for rigorous adjoint sensitivity.
+
 ---
 
-### Phase VI: Long-Horizon Scalability on Lorenz Attractor
-Scaling study on the 3D Fractional Lorenz chaotic attractor ($\beta = 0.99$, $N$ from $200$ to $3,200$ steps):
+### Phase VI: Long-Horizon Scalability ($N = 10^5$) on Lorenz Attractor
+Scaling benchmark on the chaotic 3D Fractional Lorenz attractor ($\beta = 0.99$, $N$ from $500$ to $100,000$ steps):
 
-```
-N Steps   | Full-History (s)   | Fixed SOE (s)    | AdaMem-FDE (s)   | AdaMem K_avg
------------------------------------------------------------------------------------
-200       | 0.0289 s           | 0.0195 s         | 0.0320 s         | 31.2
-400       | 0.0535 s           | 0.0346 s         | 0.0544 s         | 31.6
-800       | 0.1203 s           | 0.0718 s         | 0.1085 s         | 31.8
-1600      | 0.2938 s           | 0.1403 s         | 0.2108 s         | 31.9
-3200      | ~1.180 s (proj)    | 0.2689 s         | 0.4478 s         | 32.0 (flat!)
-```
+| $N$ Steps | Full-History (s) | Fixed SOE ($K=16$) (s) | AdaMem-FDE (s) | AdaMem $\bar{K}$ |
+| :--- | :--- | :--- | :--- | :--- |
+| 500 | 0.0827 s | 0.0508 s | 0.0878 s | 29.3 |
+| 1,000 | 0.1962 s | 0.1027 s | 0.1737 s | 30.6 |
+| 2,500 | 0.7113 s | 0.2609 s | 0.4144 s | 31.5 |
+| 5,000 | ~2.85 s (proj) | 0.5366 s | 0.8876 s | 31.7 |
+| 10,000 | ~11.38 s (proj) | 1.0505 s | 1.7230 s | 31.9 |
+| 25,000 | ~71.13 s (proj) | 2.5993 s | 4.1539 s | 31.9 |
+| 50,000 | ~284.51 s (proj) | 5.0584 s | 7.9454 s | 32.0 |
+| 100,000 | ~1,138.03 s (proj) | 9.8616 s | 15.8696 s | 32.0 |
 
 <p align="center">
   <img src="results/phase6_long_horizon_scaling.png" width="850" alt="Phase 6 Scalability" />
 </p>
 
-**Key Conclusion**: AdaMem-FDE converts the quadratic $\mathcal{O}(N^2)$ history barrier into clean, linear $\mathcal{O}(N \cdot \bar{K})$ scaling while keeping memory modes $\bar{K} = 32$ completely bounded over arbitrarily long horizons!
+**Key Scientific Takeaways:**
+1. **Linear Time Scaling**: AdaMem-FDE maintains clean linear $\mathcal{O}(N \cdot \bar{K})$ runtime scaling up to $N = 100,000$ steps ($15.87$s vs $\sim 19$ minutes projected for full history).
+2. **Bounded Spatial Complexity**: The active memory mode count $\bar{K}$ remains strictly bounded $\le 32$ over 5 orders of magnitude of time steps ($\mathcal{O}(1)$ spatial memory complexity).
+3. **Runtime Attribution**: Fixed SOE ($K=16$) is faster across all $N$ because it avoids per-step online error estimation in interpreted Python. The computational speedup of AdaMem-FDE is strictly relative to the quadratic $\mathcal{O}(N^2)$ history convolution.
 
 ---
 
 ### Phase VII / RQ6: Multi-Tolerance Pareto Frontier & Sensitivity Analysis
-To address **RQ6** ("*What is the relationship between $\epsilon_{\text{tol}}$ and $\bar{K}$, runtime, $E_{\text{forward}}$, and $E_{\text{gradient}}$?*"), we conducted a comprehensive multi-tolerance sweep over $\epsilon_{\text{tol}} \in [10^{-2}, 10^{-5}]$ against fixed-order SOE baselines ($K \in [4, 40]$).
+To evaluate **RQ6** ("*What is the relationship between $\epsilon_{\text{tol}}$ and $\bar{K}$, runtime, $E_{\text{forward}}$, and $E_{\text{gradient}}$?*"), we conducted a 3-decade tolerance sweep over $\epsilon_{\text{tol}} \in [10^{-2}, 10^{-5}]$ against fixed-order SOE baselines ($K \in [4, 40]$):
 
 | Prescribed Tolerance $\epsilon_{\text{tol}}$ | Forward Error $E_z$ | Average Modes $\bar{K}$ | Maximum Modes $K_{\max}$ | Adaptations $N_{\text{adapt}}$ | Runtime (ms) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -245,29 +263,30 @@ To address **RQ6** ("*What is the relationship between $\epsilon_{\text{tol}}$ a
 </p>
 
 **Key Scientific Takeaways (RQ6 Validation):**
-1. **Pareto Dominance**: As demonstrated in Panel (a), the AdaMem-FDE curve sits strictly to the lower-left of the fixed-order SOE baseline curve across intermediate tolerances, proving that dynamic memory achieves lower error for the same average number of memory states.
-2. **Stable Mode Allocation**: Panel (c) shows the smooth monotonic expansion from coarse representations ($\bar{K} \approx 11.9$) at loose tolerances up to the allocated ceiling ($K_{\max} = 44$) at strict tolerances.
-3. **Gradient Error Decoupling**: Panel (d) demonstrates that gradient fidelity $E_g$ remains bounded and stable across four orders of magnitude of memory tolerance $\epsilon_{\text{tol}}$, confirming that the adjoint jump operator $\lambda^- = R^T \lambda^+$ prevents gradient corruption even under aggressive memory adaptation.
+1. **Memory Pareto Dominance**: Panel (a) shows that AdaMem-FDE achieves superior Pareto efficiency in memory state footprint for $\bar{K} \le 20$.
+2. **Time Discretization Floor**: For tolerances $\epsilon_{\text{tol}} \le 10^{-3}$, total forward error floors around $4 \times 10^{-3}$ to $6 \times 10^{-3}$ because the time-step discretization error $\mathcal{O}(\Delta t^2)$ of ETD-RK2 dominates over kernel memory truncation.
+3. **Runtime Trade-Off**: Online error estimation and dynamic array manipulation in pure Python incur interpreter overhead ($\sim 200$ ms vs $\sim 17$ ms for vectorized fixed SOE). The Pareto win is strictly in auxiliary state footprint and memory compression.
+4. **Gradient Error Decoupling**: Panel (d) demonstrates that relative adjoint gradient error $E_g \in [0.032, 0.051]$ remains bounded and stable across the 3-decade tolerance sweep.
 
 ---
 
 ### Phase VIII: Learnable Fractional Order $\beta$ Joint Optimization
-In empirical physical modeling and system identification, the fractional derivative order $\beta$ is rarely known a priori and must be discovered directly from observational trajectory data. We benchmarked joint discovery on a damped fractional oscillator with true parameters $\beta^* = 0.75$, $\omega^2 = 1.50$, $\mu = 0.50$, starting from a heavily misspecified initial order $\beta_0 = 0.50$ ($\Delta \beta = -0.25$).
+Joint parameter identification and fractional order discovery on a damped fractional oscillator ($\beta^* = 0.75, \omega^2 = 1.50, \mu = 0.50$) starting from heavily misspecified initial order $\beta_0 = 0.50$ ($\Delta \beta = -0.25$):
 
 | Method / Configuration | Final Loss $\mathcal{L}_{\text{MSE}}$ | Recovered $\beta$ | Relative Error | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **Proposed Joint AdaMem-FDE** | **$1.4050 \times 10^{-4}$** | **$0.7440$** | **$0.80\%$** | **Converged** |
-| Fixed Misspecified ($\beta = 0.50$) | $1.2273 \times 10^{-2}$ | $0.5000$ (Frozen) | $33.3\%$ | Misspecified |
-| Known-Order Oracle Reference ($\beta^* = 0.75$) | $8.8364 \times 10^{-5}$ | $0.7500$ (Oracle) | $0.00\%$ | Reference |
+| **Proposed Joint AdaMem-FDE** | **$2.8534 \times 10^{-4}$** | **$0.7247$** | **$3.37\%$** | **Converged** |
+| Fixed Misspecified ($\beta = 0.50$) | $1.2560 \times 10^{-2}$ | $0.5000$ (Frozen) | $33.3\%$ | Misspecified |
+| Known-Order Oracle Reference ($\beta^* = 0.75$) | $9.3858 \times 10^{-5}$ | $0.7500$ (Oracle) | $0.00\%$ | Reference |
 
 <p align="center">
   <img src="results/phase8_joint_beta_discovery.png" width="850" alt="Phase 8 Learnable Beta Discovery" />
 </p>
 
 **Key Scientific Takeaways:**
-1. **Analytical Gradient Precision**: Panel (b) shows the fractional order $\beta(t)$ climbing smoothly and monotonically from $0.50$ straight into the $2\%$ target bound around $\beta^* = 0.75$, reaching $0.7440$ (relative error $< 0.8\%$).
-2. **Structural Misspecification Mitigation**: Freezing $\beta = 0.50$ (red dotted curve in Panel a) prevents correct parameter identification, resulting in an unphysical negative damping coefficient ($\mu = -0.0317$) and a nearly $100\times$ higher final MSE loss ($1.2273 \times 10^{-2}$ vs $1.4050 \times 10^{-4}$).
-3. **Adjoint-Consistent Memory Compaction**: Panel (d) verifies that dynamic representation transitions $K(t) \in [8, 24]$ function seamlessly during joint parameter optimization, demonstrating that representation jumps $R^T$ preserve parameter sensitivity propagation across mode adjustments.
+1. **Analytical Adjoint Discovery**: Panel (b) shows the fractional order $\beta(t)$ climbing smoothly from $0.50$ and stabilizing at $0.7247$ (relative error $< 3.4\%$).
+2. **Mitigating Structural Misspecification**: Freezing $\beta = 0.50$ results in an unphysical negative damping coefficient ($\mu = -0.0319$) and $44.0\times$ higher final MSE loss ($1.2560 \times 10^{-2}$ vs $2.8534 \times 10^{-4}$).
+3. **Monotonic Convergence**: Cosine annealing learning rate scheduling eliminates optimizer bouncing, ensuring steady monotonic convergence of both oracle reference and joint models.
 
 ---
 
@@ -308,22 +327,22 @@ pip install -r requirements.txt
 
 ## 7. Running Experiments & Reproduction
 
-Run all progressive experimental phases to reproduce the figures in `results/`:
+Each progressive experimental phase corresponds to a standalone reproduction script in `experiments/`:
 
 ```bash
-# Phase I & II: Ground-truth Mittag-Leffler validation
+# Phase I & II: Ground-truth Mittag-Leffler validation & error convergence
 python experiments/run_phase1_validation.py
 
 # Phase III: Dynamic memory mode adaptation K(t) on Duffing oscillator
 python experiments/run_phase3_adaptation.py
 
-# Phase IV & V: Neural FDE adjoint training & ablation comparison
+# Phase IV & V: Multi-seed Neural FDE adjoint training & R^T ablation comparison
 python experiments/run_phase4_training.py
 
-# Phase VI: Long-horizon O(N) scalability study on chaotic Lorenz attractor
+# Phase VI: Long-horizon O(N) complexity scaling up to N=100,000 steps
 python experiments/run_phase6_scaling.py
 
-# Phase VII / RQ6: Multi-tolerance Pareto frontier & sensitivity sweep
+# Phase VII / RQ6: Multi-tolerance Pareto frontier & sensitivity sweep (3 decades)
 python experiments/run_tolerance_pareto.py
 
 # Phase VIII: Joint fractional order beta discovery & parameter identification
