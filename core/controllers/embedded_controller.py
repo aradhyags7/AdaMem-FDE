@@ -97,6 +97,7 @@ class MemoryErrorController:
         # Adaptation history for adjoint backprop
         self.events: List[AdaptationEvent] = []
         self._consecutive_low_error = 0
+        self._cooldown = 0
         self.active_modes_history: List[int] = []
 
     def compute_memory_contribution(self, m_state: torch.Tensor) -> torch.Tensor:
@@ -111,21 +112,23 @@ class MemoryErrorController:
         gamma_factor = 1.0 / sp.gamma(self.beta)
         return gamma_factor * torch.sum(m_state * self.weights_t, dim=-1)
 
-    def estimate_error(self, m_state: torch.Tensor) -> float:
+    def estimate_error(
+        self, m_state: torch.Tensor, z_curr: Optional[torch.Tensor] = None
+    ) -> float:
         """
         Estimates local memory error using embedded shadow modes:
-            \widehat{\epsilon}_M(t) = \| M_K(t) - M_{shadow}(t) \| / (\| M_K(t) \| + 1e-6)
+            \widehat{\epsilon}_M(t) = \| M_K(t) - M_{shadow}(t) \| / (\| z(t) \| + 1.0)
         """
         with torch.no_grad():
             m_curr = self.compute_memory_contribution(m_state)
-            
+
             # Project current m to shadow modes to estimate what shadow representation would yield
             m_shadow_approx = apply_state_transition(m_state, self.R_to_shadow)
             gamma_factor = 1.0 / sp.gamma(self.beta)
             m_shadow = gamma_factor * torch.sum(m_shadow_approx * self.shadow_weights, dim=-1)
 
             diff = torch.norm(m_curr - m_shadow)
-            denom = torch.norm(m_curr) + 1e-6
+            denom = (torch.norm(z_curr) if z_curr is not None else torch.norm(m_curr)) + 1.0
             rel_error = float((diff / denom).cpu().item())
             return rel_error
 
@@ -134,6 +137,7 @@ class MemoryErrorController:
         step_idx: int,
         t: float,
         m_state: torch.Tensor,
+        z_curr: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, Optional[AdaptationEvent]]:
         """
         Checks memory error at current step and reconfigures memory modes if necessary.
@@ -142,32 +146,38 @@ class MemoryErrorController:
             step_idx: Current discrete time step index.
             t: Current time.
             m_state: Current auxiliary states, shape (..., K_old).
+            z_curr: Current physical state tensor, shape (...).
 
         Returns:
             (m_new, event): Updated state and AdaptationEvent (if transition occurred, else None).
         """
         self.active_modes_history.append(self.current_K)
-        error_est = self.estimate_error(m_state)
+        error_est = self.estimate_error(m_state, z_curr)
 
         event = None
 
-        if error_est > self.tol and self.current_K < self.K_max:
-            # Under-resolved: Expand memory modes
-            new_K = min(self.K_max, self.current_K + self.delta_K)
-            event = self._reconfigure(step_idx, t, new_K, error_est, event_type="expand")
-            m_state = apply_state_transition(m_state, event.R)
-            self._consecutive_low_error = 0
-
-        elif error_est < self.prune_tol and self.current_K > self.K_min:
-            self._consecutive_low_error += 1
-            if self._consecutive_low_error >= self.patience:
-                # Over-resolved: Prune redundant modes
-                new_K = max(self.K_min, self.current_K - self.delta_K)
-                event = self._reconfigure(step_idx, t, new_K, error_est, event_type="prune")
+        if self._cooldown > 0:
+            self._cooldown -= 1
+        elif step_idx >= 3:
+            if error_est > self.tol and self.current_K < self.K_max:
+                # Under-resolved: Expand memory modes
+                new_K = min(self.K_max, self.current_K + self.delta_K)
+                event = self._reconfigure(step_idx, t, new_K, error_est, event_type="expand")
                 m_state = apply_state_transition(m_state, event.R)
                 self._consecutive_low_error = 0
-        else:
-            self._consecutive_low_error = 0
+                self._cooldown = 6
+
+            elif error_est < self.prune_tol and self.current_K > self.K_min:
+                self._consecutive_low_error += 1
+                if self._consecutive_low_error >= self.patience:
+                    # Over-resolved: Prune redundant modes
+                    new_K = max(self.K_min, self.current_K - self.delta_K)
+                    event = self._reconfigure(step_idx, t, new_K, error_est, event_type="prune")
+                    m_state = apply_state_transition(m_state, event.R)
+                    self._consecutive_low_error = 0
+                    self._cooldown = 8
+            else:
+                self._consecutive_low_error = 0
 
         if event is not None:
             self.events.append(event)

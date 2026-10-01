@@ -144,7 +144,9 @@ class AdaptiveSOEFDESolver:
             t_next = float(t_grid[n + 1].item())
 
             # 1. Error check and dynamic memory adaptation at step boundary
-            m, event = controller.step_adaptation(step_idx=n, t=t_curr, m_state=m)
+            m, event = controller.step_adaptation(
+                step_idx=n, t=t_curr, m_state=m, z_curr=z[n]
+            )
             m_history.append(m.clone())
 
             # If adaptation occurred, recompute ETD operators for the updated modes
