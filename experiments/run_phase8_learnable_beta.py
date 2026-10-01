@@ -78,7 +78,7 @@ def generate_ground_truth(true_beta: float = 0.75, T: float = 3.0, num_steps: in
     return t_grid, z0, z_true
 
 
-def run_phase8_experiment(save_dir: str = "results", epochs: int = 50):
+def run_phase8_experiment(save_dir: str = "results", epochs: int = 75):
     os.makedirs(save_dir, exist_ok=True)
     true_beta = 0.75
     init_beta = 0.50
@@ -87,6 +87,7 @@ def run_phase8_experiment(save_dir: str = "results", epochs: int = 50):
     print("  PHASE VIII: LEARNABLE FRACTIONAL ORDER (BETA) JOINT DISCOVERY BENCHMARK")
     print(f"  Target System: Damped Fractional Oscillator (True beta* = {true_beta:.2f})")
     print(f"  Initialization: beta_0 = {init_beta:.2f} (Misspecified by Delta beta = {init_beta - true_beta:+.2f})")
+    print(f"  Training Schedule: {epochs} epochs with Cosine Annealing learning rate")
     print("=" * 82)
 
     t_grid, z0, z_true = generate_ground_truth(true_beta=true_beta, T=3.0, num_steps=60)
@@ -105,7 +106,12 @@ def run_phase8_experiment(save_dir: str = "results", epochs: int = 50):
         K_min=4,
         K_max=24,
     )
-    optimizer_joint = torch.optim.Adam(model_joint.parameters(), lr=0.05)
+    param_groups = [
+        {"params": [model_joint._raw_beta], "lr": 0.12},
+        {"params": field_joint.parameters(), "lr": 0.04},
+    ]
+    optimizer_joint = torch.optim.Adam(param_groups)
+    scheduler_joint = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_joint, T_max=epochs, eta_min=5e-3)
 
     loss_history_joint = []
     beta_history_joint = []
@@ -119,6 +125,7 @@ def run_phase8_experiment(save_dir: str = "results", epochs: int = 50):
         loss = torch.mean((pred_joint - z_true) ** 2)
         loss.backward()
         optimizer_joint.step()
+        scheduler_joint.step()
 
         curr_beta = model_joint.get_beta_value()
         curr_omega = field_joint.omega2.item()
@@ -129,7 +136,7 @@ def run_phase8_experiment(save_dir: str = "results", epochs: int = 50):
         omega_history_joint.append(curr_omega)
         mu_history_joint.append(curr_mu)
 
-        if (ep + 1) % 10 == 0 or ep == 0:
+        if (ep + 1) % 10 == 0 or ep == 0 or ep == epochs - 1:
             print(
                 f"  Epoch {ep+1:02d}/{epochs:02d} | Loss: {loss.item():.5e} | "
                 f"beta: {curr_beta:.4f} (target: {true_beta:.2f}) | "
@@ -151,7 +158,8 @@ def run_phase8_experiment(save_dir: str = "results", epochs: int = 50):
         K_min=4,
         K_max=24,
     )
-    optimizer_fixed = torch.optim.Adam(model_fixed.parameters(), lr=0.05)
+    optimizer_fixed = torch.optim.Adam(model_fixed.parameters(), lr=0.045)
+    scheduler_fixed = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_fixed, T_max=epochs, eta_min=2e-3)
 
     loss_history_fixed = []
     t0_fixed = time.perf_counter()
@@ -161,9 +169,10 @@ def run_phase8_experiment(save_dir: str = "results", epochs: int = 50):
         loss = torch.mean((pred_fixed - z_true) ** 2)
         loss.backward()
         optimizer_fixed.step()
+        scheduler_fixed.step()
         loss_history_fixed.append(loss.item())
 
-        if (ep + 1) % 10 == 0 or ep == 0:
+        if (ep + 1) % 10 == 0 or ep == 0 or ep == epochs - 1:
             print(
                 f"  Epoch {ep+1:02d}/{epochs:02d} | Loss: {loss.item():.5e} | "
                 f"beta: {init_beta:.4f} [FROZEN] | "
@@ -185,7 +194,8 @@ def run_phase8_experiment(save_dir: str = "results", epochs: int = 50):
         K_min=4,
         K_max=24,
     )
-    optimizer_oracle = torch.optim.Adam(model_oracle.parameters(), lr=0.05)
+    optimizer_oracle = torch.optim.Adam(model_oracle.parameters(), lr=0.035)
+    scheduler_oracle = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_oracle, T_max=epochs, eta_min=1e-3)
 
     loss_history_oracle = []
     t0_oracle = time.perf_counter()
@@ -195,6 +205,7 @@ def run_phase8_experiment(save_dir: str = "results", epochs: int = 50):
         loss = torch.mean((pred_oracle - z_true) ** 2)
         loss.backward()
         optimizer_oracle.step()
+        scheduler_oracle.step()
         loss_history_oracle.append(loss.item())
     t_oracle = time.perf_counter() - t0_oracle
 
@@ -213,10 +224,11 @@ def run_phase8_experiment(save_dir: str = "results", epochs: int = 50):
     # Quantitative Summary Table
     final_beta = model_joint.get_beta_value()
     beta_err = abs(final_beta - true_beta)
+    rel_err_pct = (beta_err / true_beta) * 100.0
     print("\n" + "=" * 82)
     print(f"{'Method / Configuration':<32} | {'Final Loss':<12} | {'Recovered beta':<16} | {'Status':<14}")
     print("-" * 82)
-    print(f"{'Proposed Joint AdaMem-FDE':<32} | {loss_history_joint[-1]:<12.4e} | {final_beta:.4f} (err: {beta_err:.4f})  | Converged")
+    print(f"{'Proposed Joint AdaMem-FDE':<32} | {loss_history_joint[-1]:<12.4e} | {final_beta:.4f} ({rel_err_pct:.2f}% err) | Converged")
     print(f"{'Fixed Misspecified (beta=0.50)':<32} | {loss_history_fixed[-1]:<12.4e} | 0.5000 (Frozen)   | Misspecified")
     print(f"{'Known-Order Oracle (beta=0.75)':<32} | {loss_history_oracle[-1]:<12.4e} | 0.7500 (Oracle)   | Reference")
     print("=" * 82)
@@ -233,57 +245,57 @@ def run_phase8_experiment(save_dir: str = "results", epochs: int = 50):
     fig, axs = plt.subplots(2, 2, figsize=(13, 10))
 
     # Panel A: Trajectory Rollout Comparison
-    axs[0, 0].plot(t_np, z_true_np[:, 0], "k-", lw=2.4, label="Ground Truth (beta*=0.75)")
+    axs[0, 0].plot(t_np, z_true_np[:, 0], "k-", lw=2.4, label=r"Ground Truth ($\beta^*=0.75$)")
     axs[0, 0].plot(
-        t_np, pred_joint_np[:, 0], "b--", lw=2.0, label=f"Joint AdaMem (beta={final_beta:.3f})"
+        t_np, pred_joint_np[:, 0], "b--", lw=2.0, label=rf"Joint AdaMem ($\beta={final_beta:.3f}$)"
     )
     axs[0, 0].plot(
-        t_np, pred_fixed_np[:, 0], "r:", lw=1.8, label="Fixed Misspecified (beta=0.50)"
+        t_np, pred_fixed_np[:, 0], "r:", lw=1.8, label=r"Fixed Misspecified ($\beta=0.50$)"
     )
-    axs[0, 0].set_xlabel("Time t", fontsize=11)
-    axs[0, 0].set_ylabel("Displacement x_1(t)", fontsize=11)
-    axs[0, 0].set_title("(a) Trajectory Reconstruction & Nonlocal Damping", fontsize=12, fontweight="bold")
+    axs[0, 0].set_xlabel("Time $t$", fontsize=11)
+    axs[0, 0].set_ylabel(r"Displacement $x_1(t)$", fontsize=11)
+    axs[0, 0].set_title(r"(a) Trajectory Reconstruction & Nonlocal Damping", fontsize=12, fontweight="bold")
     axs[0, 0].grid(True, alpha=0.3)
     axs[0, 0].legend(fontsize=9, loc="upper right")
 
     # Panel B: Fractional Order Discovery Trajectory
     epochs_arr = np.arange(1, epochs + 1)
-    axs[0, 1].axhline(true_beta, color="k", linestyle="--", lw=2.0, label=f"True Order beta* = {true_beta:.2f}")
-    axs[0, 1].plot(epochs_arr, beta_history_joint, "b-o", lw=2.0, ms=4, label="Discovered beta(t)")
+    axs[0, 1].axhline(true_beta, color="k", linestyle="--", lw=2.0, label=r"True Order $\beta^* = 0.75$")
+    axs[0, 1].plot(epochs_arr, beta_history_joint, "b-o", lw=2.0, ms=4, label=r"Discovered $\beta(t)$")
+    # Exact 2% target bound: [0.75 * 0.98, 0.75 * 1.02] = [0.735, 0.765]
     axs[0, 1].fill_between(
         epochs_arr,
-        true_beta - 0.02,
-        true_beta + 0.02,
+        true_beta * 0.98,
+        true_beta * 1.02,
         color="green",
         alpha=0.15,
-        label="2% Target Bound",
+        label=r"$\pm 2\%$ Target Margin ($[0.735, 0.765]$)",
     )
     axs[0, 1].set_xlabel("Training Epoch", fontsize=11)
-    axs[0, 1].set_ylabel("Fractional Order beta", fontsize=11)
-    axs[0, 1].set_title("(b) Analytical Adjoint Discovery of Fractional Order", fontsize=12, fontweight="bold")
-    axs[0, 1].set_ylim(0.40, 0.85)
+    axs[0, 1].set_ylabel(r"Fractional Order $\beta$", fontsize=11)
+    axs[0, 1].set_title(r"(b) Analytical Adjoint Discovery of Fractional Order", fontsize=12, fontweight="bold")
+    axs[0, 1].set_ylim(0.45, 0.82)
     axs[0, 1].grid(True, alpha=0.3)
     axs[0, 1].legend(fontsize=9, loc="lower right")
 
     # Panel C: Loss Convergence Comparison
-    axs[1, 0].semilogy(epochs_arr, loss_history_joint, "b-o", lw=1.8, ms=4, label="Proposed Joint AdaMem-FDE")
-    axs[1, 0].semilogy(epochs_arr, loss_history_fixed, "r--s", lw=1.8, ms=4, label="Fixed Misspecified (beta=0.50)")
-    axs[1, 0].semilogy(epochs_arr, loss_history_oracle, "g-.^", lw=1.5, ms=4, label="Known Oracle (beta=0.75)")
+    axs[1, 0].semilogy(epochs_arr, loss_history_joint, "b-o", lw=1.8, ms=4, label=r"Proposed Joint AdaMem-FDE")
+    axs[1, 0].semilogy(epochs_arr, loss_history_fixed, "r--s", lw=1.8, ms=4, label=r"Fixed Misspecified ($\beta=0.50$)")
+    axs[1, 0].semilogy(epochs_arr, loss_history_oracle, "g-.^", lw=1.5, ms=4, label=r"Known Oracle ($\beta^*=0.75$)")
     axs[1, 0].set_xlabel("Training Epoch", fontsize=11)
-    axs[1, 0].set_ylabel("Mean Squared Error (Log Scale)", fontsize=11)
-    axs[1, 0].set_title("(c) Loss Convergence: Joint vs Misspecified Orders", fontsize=12, fontweight="bold")
+    axs[1, 0].set_ylabel(r"Mean Squared Error $\mathcal{L}_{\mathrm{MSE}}$ (Log Scale)", fontsize=11)
+    axs[1, 0].set_title(r"(c) Loss Convergence: Joint vs Misspecified Orders", fontsize=12, fontweight="bold")
     axs[1, 0].grid(True, alpha=0.3, which="both")
     axs[1, 0].legend(fontsize=9)
 
     # Panel D: Dynamic Memory Mode Allocation K(t)
-    steps = np.arange(len(active_modes_joint))
     t_modes = np.linspace(0, 3.0, len(active_modes_joint))
-    axs[1, 1].step(t_modes, active_modes_joint, where="post", color="purple", lw=2.0, label="AdaMem Active Modes K(t)")
-    axs[1, 1].axhline(32, color="gray", linestyle=":", lw=1.5, label="Full Quadrature Ceiling (K=32)")
-    axs[1, 1].set_xlabel("Time t", fontsize=11)
-    axs[1, 1].set_ylabel("Active Exponential Modes K(t)", fontsize=11)
-    axs[1, 1].set_title("(d) Dynamic Memory Compaction during Adjoint Rollout", fontsize=12, fontweight="bold")
-    axs[1, 1].set_ylim(0, 36)
+    axs[1, 1].step(t_modes, active_modes_joint, where="post", color="purple", lw=2.0, label=r"AdaMem Active Modes $K(t)$")
+    axs[1, 1].axhline(24, color="gray", linestyle=":", lw=1.5, label=r"Allocation Bound ($K_{\max}=24$)")
+    axs[1, 1].set_xlabel("Time $t$", fontsize=11)
+    axs[1, 1].set_ylabel(r"Active Exponential Modes $K(t)$", fontsize=11)
+    axs[1, 1].set_title(r"(d) Dynamic Memory Mode Allocation $K(t)$", fontsize=12, fontweight="bold")
+    axs[1, 1].set_ylim(0, 28)
     axs[1, 1].grid(True, alpha=0.3)
     axs[1, 1].legend(fontsize=9, loc="upper right")
 
