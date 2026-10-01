@@ -37,7 +37,11 @@
   4. Naive adaptive memory without adjoint-consistent transitions (ablation baseline)
   5. **AdaMem-FDE (Proposed)**: Adaptive memory + adjoint-consistent transitions.
 
-## 5. Metrics to Report
+## 5. Benchmark Archiving Protocol
+- Before running any new benchmark, always move existing PNG graphs and JSON/CSV data from `results/` into `previous_results/<experiment_run_name>/` (see `.agents/rules/results_archiving.md`).
+- `results/` must strictly hold the canonical headline figures referenced in `README.md`.
+
+## 6. Metrics to Report
 - Forward error $E_z = \|z - z_{\text{ref}}\| / \|z_{\text{ref}}\|$
 - Relative gradient error $E_g$
 - Wall-clock runtime $T_{\text{runtime}}$
