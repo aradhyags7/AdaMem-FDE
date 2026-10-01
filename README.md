@@ -271,25 +271,28 @@ To evaluate **RQ6** ("*What is the relationship between $\epsilon_{\text{tol}}$ 
 
 ---
 
-### Phase VIII: Learnable Fractional Order $\beta$ Multi-Initialization Benchmark
-Joint parameter identification and fractional order discovery on a damped fractional oscillator ($\beta^* = 0.75, \omega^2 = 1.50, \mu = 0.50$) across three distinct initial orders $\beta_0 \in [0.30, 0.50, 0.90]$ and 3 random initializations:
+### Phase VIII: Learnable Fractional Order $\beta$ Joint Optimization Benchmark
+Joint parameter identification and fractional order discovery on a damped fractional oscillator ($\beta^* = 0.75, \omega^2 = 1.50, \mu = 0.50$) across $N_{\text{seeds}} = 5$ independent random seeds (`seeds = [42, 101, 202, 303, 404]`) with randomized parameter initializations ($\omega_0^2 \in [0.4, 1.2], \mu_0 \in [0.05, 0.40]$) and seeded observation noise. Ground truth is generated on a $10\times$ refined grid ($N = 600, \epsilon_{\text{tol}} = 10^{-5}, K_{\max} = 40$) to eliminate "inverse crime" solver bias.
 
-| Initialization / Baseline | Final Loss (Mean $\pm$ Std) | Recovered $\beta$ | Relative Error | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| **Joint AdaMem ($\beta_0 = 0.90$)** | **$(1.16 \pm 0.00) \times 10^{-4}$** | **$0.7455 \pm 0.0000$** | **$0.60\%$ (within 2% bound)** | **Converged** |
-| **Joint AdaMem ($\beta_0 = 0.50$)** | **$(3.71 \pm 0.00) \times 10^{-4}$** | **$0.7243 \pm 0.0000$** | **$3.43\%$** | **Converged** |
-| **Joint AdaMem ($\beta_0 = 0.30$)** | **$(1.10 \pm 0.00) \times 10^{-3}$** | **$0.7048 \pm 0.0000$** | **$6.03\%$** | **Converged** |
-| Fixed Misspecified ($\beta = 0.50$) | $(1.26 \pm 0.00) \times 10^{-2}$ | $0.5000$ [Frozen] | $33.3\%$ | Misspecified |
-| Known-Order Oracle Reference ($\beta^* = 0.75$) | $(9.32 \pm 0.00) \times 10^{-5}$ | $0.7500$ [Oracle] | $0.00\%$ | Reference |
+#### Headline Benchmark ($1\%$ Relative Observation Noise, $\sigma_{\text{rel}} = 0.01$):
+
+| Configuration / Initialization | Final $\beta$ (Mean $\pm$ Std) | Relative Error | Within $\pm 2\%$ Bound | Final Loss Median [Min, Max] | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Joint AdaMem ($\beta_0 = 0.90$)** | **$0.7600 \pm 0.0034$** | **$1.34\%$** | **$5/5$ Seeds ($100\%$)** | $1.68 \times 10^{-4}$ [$1.45 \times 10^{-4}, 2.20 \times 10^{-4}$] | **Converged** |
+| **Joint AdaMem ($\beta_0 = 0.50$)** | **$0.7394 \pm 0.0033$** | **$1.42\%$** | **$4/5$ Seeds ($80\%$)** | $7.74 \times 10^{-5}$ [$7.41 \times 10^{-5}, 1.13 \times 10^{-4}$] | **Converged** |
+| **Joint AdaMem ($\beta_0 = 0.30$)** | **$0.7250 \pm 0.0047$** | **$3.33\%$** | **$0/5$ Seeds ($0\%$)** | $2.43 \times 10^{-4}$ [$1.27 \times 10^{-4}, 4.43 \times 10^{-4}$] | **Converged** |
+| Fixed Misspecified ($\beta = 0.50$) | $0.5000 \pm 0.0000$ | $33.33\%$ | $0/5$ Seeds ($0\%$) | $1.18 \times 10^{-2}$ [$1.17 \times 10^{-2}, 1.19 \times 10^{-2}$] | Severe Bias |
+| Known-Order Oracle ($\beta^* = 0.75$) | $0.7500 \pm 0.0000$ | $0.00\%$ | $5/5$ Seeds ($100\%$) | $8.83 \times 10^{-5}$ [$8.65 \times 10^{-5}, 9.48 \times 10^{-5}$] | Reference |
 
 <p align="center">
   <img src="results/phase8_joint_beta_discovery.png" width="850" alt="Phase 8 Learnable Beta Discovery" />
 </p>
 
 **Key Scientific Takeaways:**
-1. **Multi-Initialization Convergence Fan**: Panel (b) shows the fractional order trajectories $\beta(t)$ converging toward $\beta^* = 0.75$ from both below ($\beta_0 = 0.30, 0.50$) and above ($\beta_0 = 0.90$), reaching within $0.6\%$ to $3.4\%$ relative error of the ground truth.
-2. **Structural Misspecification Mitigation**: Freezing $\beta = 0.50$ results in unphysical negative damping and up to $108\times$ higher final loss compared to joint AdaMem-FDE.
-3. **Decoupled Learning Rate Scheduling**: Using a dedicated learning rate for $\beta$ with slow step decay alongside cosine annealing for field weights prevents premature freezing, ensuring steady asymptotic convergence.
+1. **Convergence Within $\pm 2\%$ Bound**: For $\beta_0 = 0.90$ ($5/5$ seeds within $\pm 2\%$) and $\beta_0 = 0.50$ ($4/5$ seeds within $\pm 2\%$), joint optimization of the fractional order and dynamical field parameters reliably recovers $\beta^* = 0.750$ with mean error $< 1.45\%$.
+2. **Diagnostic Field-Frozen Verification ($\beta$-Only Arm)**: Evaluating an isolated diagnostic arm with field parameters frozen at the true values reveals that $\beta$ converges identically to $0.7369 \pm 0.0000$ ($1.75\%$ error, $15/15$ seeds across all $\beta_0$ in $\pm 2\%$) in the noiseless limit. This demonstrates that the analytical adjoint sensitivity $d\mathcal{L}/d\beta$ and the dedicated low-momentum Adam optimizer with `ReduceLROnPlateau` are stable and unbiased. The residual $\sim 1.7\%$ offset reflects the discretization/truncation gap between the fitting solver and the $10\times$ refined ground truth.
+3. **$\beta$-$\theta$ Parameter Coupling at Deep Misspecification**: When initialized from deep misspecification ($\beta_0 = 0.30$), joint training converges to $\beta \approx 0.725$ ($3.33\%$ error). Comparing the joint arm with the $\beta$-only diagnostic arm shows that this slight flattening is caused by physical parameter compensation between the fractional dissipation rate and the linear damping parameter $\mu$, an inherent structural identifiability property of single-trajectory oscillators rather than an optimization bug.
+4. **Noise Robustness**: Under high noise ($\sigma_{\text{rel}} = 0.05$), recovery remains stable with $4/5$ seeds within $\pm 2\%$ for $\beta_0=0.90$ ($0.7590 \pm 0.0049$) and $\beta_0=0.50$ ($0.7395 \pm 0.0057$). Misspecifying $\beta = 0.50$ yields over $150\times$ higher MSE than joint discovery.
 
 ---
 
@@ -362,13 +365,14 @@ Run the complete test suite using `pytest`:
 pytest tests/ -v -s
 ```
 
-All 21 tests pass across:
+All 24 tests pass across:
 - Mittag-Leffler analytical precision ($E_{1,1}(z) = e^z$, zeros, asymptotic tails)
 - Dyadic contour quadrature pole positivity ($\lambda_k > 0, w_k > 0$)
 - Adjoint inner-product duality $\langle \lambda^+, R m^- \rangle = \langle R^T \lambda^+, m^- \rangle$ ($\Delta < 10^{-12}$)
 - Forward solver convergence on analytical benchmarks
 - Finite difference gradient verification and Ablation C validation
 - Learnable $\beta$ parameterization, gradient flow, and parameter recovery
+- Embedded error controller unit regression (startup grace period, cooldown hysteresis, state norm conditioning)
 
 ---
 

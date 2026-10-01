@@ -148,17 +148,22 @@ class AdaMemAdjointFunction(torch.autograd.Function):
             with torch.enable_grad():
                 f_n = f_func(z_n, t_curr)
                 # Compute VJP for parameters: v * df/dtheta
-                if len(params) > 0:
+                trainable_params = [p for p in params if p.requires_grad]
+                if len(trainable_params) > 0:
                     vjp_params = torch.autograd.grad(
                         outputs=f_n,
-                        inputs=params,
+                        inputs=trainable_params,
                         grad_outputs=v,
                         retain_graph=True,
                         allow_unused=True,
                     )
-                    for i, g in enumerate(vjp_params):
-                        if g is not None:
-                            grad_params[i] += dt * g
+                    idx = 0
+                    for i, p in enumerate(params):
+                        if p.requires_grad:
+                            g = vjp_params[idx]
+                            idx += 1
+                            if g is not None:
+                                grad_params[i] += dt * g
 
                 # Compute VJP for state: v * df/dz
                 vjp_z = torch.autograd.grad(

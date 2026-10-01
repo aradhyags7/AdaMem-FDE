@@ -177,7 +177,7 @@ class NeuralFDE(nn.Module):
                 K_min=self.K_min,
                 K_max=self.K_max,
                 use_adjoint_jump=True,
-                parameters=tuple(self.vector_field.parameters()),
+                parameters=tuple(p for p in self.vector_field.parameters() if p.requires_grad),
             )
 
         elif method == "naive_adaptive":
@@ -192,7 +192,7 @@ class NeuralFDE(nn.Module):
                 K_min=self.K_min,
                 K_max=self.K_max,
                 use_adjoint_jump=False,
-                parameters=tuple(self.vector_field.parameters()),
+                parameters=tuple(p for p in self.vector_field.parameters() if p.requires_grad),
             )
 
         elif method == "fixed":
