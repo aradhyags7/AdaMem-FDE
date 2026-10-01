@@ -3,7 +3,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue?logo=python&logoColor=white" alt="Python Version" />
   <img src="https://img.shields.io/badge/PyTorch-2.2%2B-ee4c2c?logo=pytorch&logoColor=white" alt="PyTorch Version" />
-  <img src="https://img.shields.io/badge/Tests-18%2F18%20Passing-brightgreen?logo=pytest&logoColor=white" alt="Tests" />
+  <img src="https://img.shields.io/badge/Tests-21%2F21%20Passing-brightgreen?logo=pytest&logoColor=white" alt="Tests" />
   <img src="https://img.shields.io/badge/Status-Research%20Grade-purple" alt="Status" />
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License" />
 </p>
@@ -27,6 +27,7 @@
    - [2.4 Analytical Cauchy-Gram Projection Operator](#24-analytical-cauchy-gram-projection-operator)
    - [2.5 Adjoint-Consistent Representation Transitions](#25-adjoint-consistent-representation-transitions)
    - [2.6 Embedded Error Controller](#26-embedded-error-controller)
+   - [2.7 Analytical Sensitivity of Fractional Order $\beta$](#27-analytical-sensitivity-of-fractional-order-beta)
 3. [Repository Architecture](#3-repository-architecture)
 4. [Experimental Suite & Empirical Results](#4-experimental-suite--empirical-results)
    - [Phase I & II: Ground-Truth Mittag-Leffler Verification](#phase-i--ii-ground-truth-mittag-leffler-verification)
@@ -34,6 +35,7 @@
    - [Phase IV & V: Neural FDE Training & Ablation Study](#phase-iv--v-neural-fde-training--ablation-study)
    - [Phase VI: Long-Horizon Scalability on Lorenz Attractor](#phase-vi-long-horizon-scalability-on-lorenz-attractor)
    - [Phase VII / RQ6: Multi-Tolerance Pareto Frontier & Sensitivity Analysis](#phase-vii--rq6-multi-tolerance-pareto-frontier--sensitivity-analysis)
+   - [Phase VIII: Learnable Fractional Order $\beta$ Joint Optimization](#phase-viii-learnable-fractional-order-beta-joint-optimization)
 5. [Baselines Evaluated](#5-baselines-evaluated)
 6. [Installation & Setup](#6-installation--setup)
 7. [Running Experiments & Reproduction](#7-running-experiments--reproduction)
@@ -106,6 +108,16 @@ $$\widehat{\epsilon}_M(t) = \frac{\|M_K(t) - M_{\text{shadow}}(t)\|}{\|M_K(t)\| 
 - If $\widehat{\epsilon}_M(t) > \epsilon_{\text{tol}}$: expand modes $K \to K + \Delta K$.
 - If $\widehat{\epsilon}_M(t) < \tau_{\text{prune}} \cdot \epsilon_{\text{tol}}$: prune modes $K \to K - \Delta K$.
 
+### 2.7 Analytical Sensitivity of Fractional Order $\beta$
+For the power-law kernel $s^{\beta - 1} \approx \sum_{k=1}^K w_k(\beta) e^{-\lambda_k s}$, the state trajectory is reconstructed via:
+$$z(t) \approx z_0 + \frac{1}{\Gamma(\beta)} \sum_{k=1}^{K(t)} w_k(\beta) m_k(t)$$
+Differentiating with respect to the fractional derivative order $\beta$ yields the exact analytical sensitivity:
+$$\frac{\partial z(t)}{\partial \beta} = -\frac{\psi(\beta)}{\Gamma(\beta)} \sum_{k=1}^{K(t)} w_k(\beta) m_k(t) + \frac{1}{\Gamma(\beta)} \sum_{k=1}^{K(t)} \frac{\partial w_k}{\partial \beta} m_k(t)$$
+where the dyadic contour quadrature weights satisfy:
+$$\frac{\partial w_k}{\partial \beta} = w_k \left( \psi(1 - \beta) - \ln \lambda_k \right)$$
+with $\psi(x) = \frac{d}{dx} \ln \Gamma(x)$ denoting the digamma function.
+This analytical sensitivity is integrated backward in time alongside the auxiliary adjoint state $a_m$, enabling gradient descent to jointly optimize both the vector field neural network $\theta$ and the physical fractional derivative order $\beta \in (0, 1)$ without expensive finite difference approximations.
+
 ---
 
 ## 3. Repository Architecture
@@ -130,15 +142,17 @@ AdaMem-FDE/
 │   └── adjoint/
 │       └── adamem_adjoint.py       # Custom PyTorch autograd Function with R^T jumps
 ├── models/
-│   └── neural_fde.py               # NeuralFDE & VectorFieldNetwork modules
+│   └── neural_fde.py               # NeuralFDE (learnable beta) & VectorFieldNetwork modules
 ├── benchmarks/
 │   └── systems.py                  # Mittag-Leffler, Duffing, Van der Pol, & Lorenz
 ├── experiments/
 │   ├── run_phase1_validation.py    # Phase I & II: Ground-truth validation
 │   ├── run_phase3_adaptation.py    # Phase III: Dynamic K(t) tracking
 │   ├── run_phase4_training.py      # Phase IV & V: Neural FDE adjoint training
-│   └── run_phase6_scaling.py       # Phase VI: Long-horizon complexity scaling
-├── tests/                          # 15 comprehensive unit tests (100% pass)
+│   ├── run_phase6_scaling.py       # Phase VI: Long-horizon complexity scaling
+│   ├── run_tolerance_pareto.py     # Phase VII: Multi-tolerance Pareto sweep
+│   └── run_phase8_learnable_beta.py# Phase VIII: Joint fractional order beta discovery
+├── tests/                          # 21 comprehensive unit tests (100% pass)
 └── results/                        # Generated publication plots & benchmark data
 ```
 
@@ -237,6 +251,26 @@ To address **RQ6** ("*What is the relationship between $\epsilon_{\text{tol}}$ a
 
 ---
 
+### Phase VIII: Learnable Fractional Order $\beta$ Joint Optimization
+In empirical physical modeling and system identification, the fractional derivative order $\beta$ is rarely known a priori and must be discovered directly from observational trajectory data. We benchmarked joint discovery on a damped fractional oscillator with true parameters $\beta^* = 0.75$, $\omega^2 = 1.50$, $\mu = 0.50$, starting from a heavily misspecified initial order $\beta_0 = 0.50$ ($\Delta \beta = -0.25$).
+
+| Method / Configuration | Final Loss $\mathcal{L}_{\text{MSE}}$ | Recovered $\beta$ | Relative Error | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **Proposed Joint AdaMem-FDE** | **$1.4050 \times 10^{-4}$** | **$0.7440$** | **$0.80\%$** | **Converged** |
+| Fixed Misspecified ($\beta = 0.50$) | $1.2273 \times 10^{-2}$ | $0.5000$ (Frozen) | $33.3\%$ | Misspecified |
+| Known-Order Oracle Reference ($\beta^* = 0.75$) | $8.8364 \times 10^{-5}$ | $0.7500$ (Oracle) | $0.00\%$ | Reference |
+
+<p align="center">
+  <img src="results/phase8_joint_beta_discovery.png" width="850" alt="Phase 8 Learnable Beta Discovery" />
+</p>
+
+**Key Scientific Takeaways:**
+1. **Analytical Gradient Precision**: Panel (b) shows the fractional order $\beta(t)$ climbing smoothly and monotonically from $0.50$ straight into the $2\%$ target bound around $\beta^* = 0.75$, reaching $0.7440$ (relative error $< 0.8\%$).
+2. **Structural Misspecification Mitigation**: Freezing $\beta = 0.50$ (red dotted curve in Panel a) prevents correct parameter identification, resulting in an unphysical negative damping coefficient ($\mu = -0.0317$) and a nearly $100\times$ higher final MSE loss ($1.2273 \times 10^{-2}$ vs $1.4050 \times 10^{-4}$).
+3. **Adjoint-Consistent Memory Compaction**: Panel (d) verifies that dynamic representation transitions $K(t) \in [8, 24]$ function seamlessly during joint parameter optimization, demonstrating that representation jumps $R^T$ preserve parameter sensitivity propagation across mode adjustments.
+
+---
+
 ## 5. Baselines Evaluated
 
 1. **Baseline 1 — Full-History Fractional Solver**: Classical Diethelm Adams-Bashforth-Moulton $\mathcal{O}(N^2)$ predictor-corrector.
@@ -291,6 +325,9 @@ python experiments/run_phase6_scaling.py
 
 # Phase VII / RQ6: Multi-tolerance Pareto frontier & sensitivity sweep
 python experiments/run_tolerance_pareto.py
+
+# Phase VIII: Joint fractional order beta discovery & parameter identification
+python experiments/run_phase8_learnable_beta.py
 ```
 
 ---
@@ -303,12 +340,13 @@ Run the complete test suite using `pytest`:
 pytest tests/ -v -s
 ```
 
-All 15 tests pass across:
+All 21 tests pass across:
 - Mittag-Leffler analytical precision ($E_{1,1}(z) = e^z$, zeros, asymptotic tails)
 - Dyadic contour quadrature pole positivity ($\lambda_k > 0, w_k > 0$)
 - Adjoint inner-product duality $\langle \lambda^+, R m^- \rangle = \langle R^T \lambda^+, m^- \rangle$ ($\Delta < 10^{-12}$)
 - Forward solver convergence on analytical benchmarks
 - Finite difference gradient verification and Ablation C validation
+- Learnable $\beta$ parameterization, gradient flow, and parameter recovery
 
 ---
 
