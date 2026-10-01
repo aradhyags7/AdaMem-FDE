@@ -86,37 +86,42 @@ def train_single_seed(seed: int, method: str, t_grid, z0, z_true, beta=0.85, epo
     return loss_history, final_pred
 
 
-def evaluate_gradient_errors(t_grid, z0, z_true, beta=0.85):
-    """Evaluates adjoint gradient relative error vs finite differences across 5 configurations."""
-    from tests.test_adjoint_gradients import SimpleLinearField
+def evaluate_gradient_errors(t_grid, z0, z_true, seeds, beta=0.85):
+    """Evaluates adjoint gradient relative error vs finite differences on the neural network across seeds."""
     h = 1e-6
-    z_tgt = z_true[:, :1]
     err_prop, err_naive = [], []
 
-    for th in [0.7, 0.9, 1.0, 1.2, 1.4]:
-        # Reference FD
-        m_ref = SimpleLinearField(th)
+    for s in seeds:
+        torch.manual_seed(s)
+        vf = StructuredDuffingField(hidden_dim=32)
+        p = list(vf.parameters())[0]
+
         with torch.no_grad():
-            m_ref.theta.data.fill_(th + h)
-            lp = 0.5 * torch.sum((adamem_integrate(m_ref, z0[:1], t_grid, beta=beta, tol=1e-3, K_init=8, K_min=4, K_max=24, use_adjoint_jump=True) - z_tgt) ** 2).item()
-            m_ref.theta.data.fill_(th - h)
-            lm = 0.5 * torch.sum((adamem_integrate(m_ref, z0[:1], t_grid, beta=beta, tol=1e-3, K_init=8, K_min=4, K_max=24, use_adjoint_jump=True) - z_tgt) ** 2).item()
+            p.data[0, 0] += h
+            z_plus = adamem_integrate(vf, z0, t_grid, beta=beta, tol=1e-3, K_init=8, K_min=4, K_max=24, use_adjoint_jump=True)
+            lp = 0.5 * torch.sum((z_plus - z_true) ** 2).item()
+            p.data[0, 0] -= 2 * h
+            z_minus = adamem_integrate(vf, z0, t_grid, beta=beta, tol=1e-3, K_init=8, K_min=4, K_max=24, use_adjoint_jump=True)
+            lm = 0.5 * torch.sum((z_minus - z_true) ** 2).item()
+            p.data[0, 0] += h
         g_fd = (lp - lm) / (2.0 * h)
 
         # Proposed with R^T
-        m_p = SimpleLinearField(th)
-        zp = adamem_integrate(m_p, z0[:1], t_grid, beta=beta, tol=1e-3, K_init=8, K_min=4, K_max=24, use_adjoint_jump=True, parameters=tuple(m_p.parameters()))
-        (0.5 * torch.sum((zp - z_tgt) ** 2)).backward()
-        gp = m_p.theta.grad.item()
+        vf.zero_grad()
+        zp = adamem_integrate(vf, z0, t_grid, beta=beta, tol=1e-3, K_init=8, K_min=4, K_max=24, use_adjoint_jump=True, parameters=tuple(vf.parameters()))
+        (0.5 * torch.sum((zp - z_true) ** 2)).backward()
+        gp = p.grad[0, 0].item()
 
         # Naive without R^T
-        m_n = SimpleLinearField(th)
-        zn = adamem_integrate(m_n, z0[:1], t_grid, beta=beta, tol=1e-3, K_init=8, K_min=4, K_max=24, use_adjoint_jump=False, parameters=tuple(m_n.parameters()))
-        (0.5 * torch.sum((zn - z_tgt) ** 2)).backward()
-        gn = m_n.theta.grad.item()
+        vf.zero_grad()
+        zn = adamem_integrate(vf, z0, t_grid, beta=beta, tol=1e-3, K_init=8, K_min=4, K_max=24, use_adjoint_jump=False, parameters=tuple(vf.parameters()))
+        (0.5 * torch.sum((zn - z_true) ** 2)).backward()
+        gn = p.grad[0, 0].item()
 
-        err_prop.append(abs(gp - g_fd) / abs(g_fd))
-        err_naive.append(abs(gn - g_fd) / abs(g_fd))
+        ep = abs(gp - g_fd) / abs(g_fd)
+        en = abs(gn - g_fd) / abs(g_fd)
+        err_prop.append(ep)
+        err_naive.append(en)
 
     return np.array(err_prop), np.array(err_naive)
 
@@ -168,7 +173,7 @@ def run_phase4_experiment(save_dir: str = "results", epochs: int = 35):
 
     # 3. Quantitative Gradient Error Evaluation
     print("\n--- Evaluating Adjoint Gradient Error Across Initializations ---")
-    err_prop_arr, err_naive_arr = evaluate_gradient_errors(t_grid, z0, z_true, beta=beta)
+    err_prop_arr, err_naive_arr = evaluate_gradient_errors(t_grid, z0, z_true, seeds=seeds, beta=beta)
     print(f"Proposed Relative Gradient Error: {np.mean(err_prop_arr)*100:.2f}% +/- {np.std(err_prop_arr)*100:.2f}%")
     print(f"Naive Relative Gradient Error:    {np.mean(err_naive_arr)*100:.2f}% +/- {np.std(err_naive_arr)*100:.2f}%")
     print(f"Gradient Error Reduction:         {np.mean(err_naive_arr) / np.mean(err_prop_arr):.2f}x lower error with R^T jump")
@@ -188,17 +193,17 @@ def run_phase4_experiment(save_dir: str = "results", epochs: int = 35):
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 4.8))
 
     # Panel 1: Multi-Seed Loss Convergence with Confidence Bands
-    ax1.semilogy(epochs_arr, mean_prop, "b-", lw=2.0, label=r"Proposed AdaMem-FDE ($R^T$ jump)")
+    ax1.semilogy(epochs_arr, mean_prop, "b-", lw=2.0, label=rf"Proposed ($R^T$ Jump): {mean_prop[-1]:.2e}$\pm${std_prop[-1]:.2e}")
     ax1.fill_between(epochs_arr, np.maximum(1e-5, mean_prop - std_prop), mean_prop + std_prop, color="blue", alpha=0.18)
 
-    ax1.semilogy(epochs_arr, mean_naive, "r--", lw=1.8, label=r"Baseline 4 (No jump ablation)")
+    ax1.semilogy(epochs_arr, mean_naive, "r--", lw=1.8, label=rf"Baseline 4 (No Jump): {mean_naive[-1]:.2e}$\pm${std_naive[-1]:.2e}")
     ax1.fill_between(epochs_arr, np.maximum(1e-5, mean_naive - std_naive), mean_naive + std_naive, color="red", alpha=0.18)
 
     ax1.set_xlabel("Epoch", fontsize=11)
     ax1.set_ylabel(r"MSE Loss (Mean $\pm$ Std, $N_{\mathrm{seeds}}=5$)", fontsize=10)
     ax1.set_title("(a) Multi-Seed Training Loss Convergence", fontsize=11, fontweight="bold")
     ax1.grid(True, alpha=0.3, which="both")
-    ax1.legend(fontsize=9, loc="upper right")
+    ax1.legend(fontsize=8, loc="upper right")
 
     # Panel 2: Learned Trajectory Rollout vs Ground Truth
     best_pred_prop = prop_preds[0].cpu().numpy()
@@ -217,12 +222,12 @@ def run_phase4_experiment(save_dir: str = "results", epochs: int = 35):
     width = 0.35
     ax3.bar(x_pos - width / 2, err_prop_arr * 100, width, label=r"Proposed ($R^T$ Jump)", color="royalblue", alpha=0.85)
     ax3.bar(x_pos + width / 2, err_naive_arr * 100, width, label=r"Baseline 4 (No Jump)", color="salmon", alpha=0.85)
-    ax3.axhline(np.mean(err_prop_arr) * 100, color="blue", linestyle="--", lw=1.5, label=rf"Proposed Mean: {np.mean(err_prop_arr)*100:.1f}%")
-    ax3.axhline(np.mean(err_naive_arr) * 100, color="red", linestyle=":", lw=1.5, label=rf"Naive Mean: {np.mean(err_naive_arr)*100:.1f}%")
+    ax3.axhline(np.mean(err_prop_arr) * 100, color="blue", linestyle="--", lw=1.5, label=rf"Proposed: {np.mean(err_prop_arr)*100:.1f}$\pm${np.std(err_prop_arr)*100:.1f}%")
+    ax3.axhline(np.mean(err_naive_arr) * 100, color="red", linestyle=":", lw=1.5, label=rf"Baseline: {np.mean(err_naive_arr)*100:.1f}$\pm${np.std(err_naive_arr)*100:.1f}%")
     ax3.set_xticks(x_pos)
-    ax3.set_xticklabels([f"Init {i+1}" for i in range(len(err_prop_arr))], fontsize=9)
+    ax3.set_xticklabels([f"Seed {s}" for s in seeds], fontsize=9)
     ax3.set_ylabel(r"Relative Gradient Error $E_g$ (%)", fontsize=10)
-    ax3.set_title(r"(c) Adjoint Gradient Error Ablation ($E_g$)", fontsize=11, fontweight="bold")
+    ax3.set_title(r"(c) Adjoint Gradient Error ($E_g$ on NN)", fontsize=11, fontweight="bold")
     ax3.grid(True, alpha=0.3, axis="y")
     ax3.legend(fontsize=8, loc="upper right")
 
