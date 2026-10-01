@@ -154,6 +154,8 @@ def run_gradient_error_sweep(
 
 def run_tolerance_pareto_experiment(save_dir: str = "results"):
     os.makedirs(save_dir, exist_ok=True)
+    from experiments.archive_utils import archive_previous_results
+    archive_previous_results("tolerance_pareto", ["pareto_frontier_analysis.png", "pareto_frontier_data.json"], save_dir=save_dir)
 
     print("\n" + "=" * 84)
     print("  PARETO FRONTIER & TOLERANCE SENSITIVITY EXPERIMENT (AdaMem-FDE vs Fixed SOE)")
@@ -233,7 +235,19 @@ def run_tolerance_pareto_experiment(save_dir: str = "results"):
     plt.savefig(plot_path, dpi=200)
     plt.close()
 
-    print(f"\n[Artifact Saved] Pareto frontier visualization saved to {plot_path}\n")
+    # Save structured benchmark data for research paper reporting
+    import json
+    data_record = {
+        "fixed_soe": fixed_res,
+        "adaptive_soe": adapt_res,
+        "gradient_fidelity": grad_res,
+    }
+    json_path = os.path.join(save_dir, "pareto_frontier_data.json")
+    with open(json_path, "w") as f:
+        json.dump(data_record, f, indent=2)
+
+    print(f"\n[Artifact Saved] Pareto frontier visualization saved to {plot_path}")
+    print(f"[Artifact Saved] Pareto frontier data saved to {json_path}\n")
 
 
 if __name__ == "__main__":

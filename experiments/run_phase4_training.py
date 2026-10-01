@@ -128,6 +128,8 @@ def evaluate_gradient_errors(t_grid, z0, z_true, seeds, beta=0.85):
 
 def run_phase4_experiment(save_dir: str = "results", epochs: int = 35):
     os.makedirs(save_dir, exist_ok=True)
+    from experiments.archive_utils import archive_previous_results
+    archive_previous_results("phase4_training", ["phase4_neural_fde_training.png", "phase4_neural_fde_training.json"], save_dir=save_dir)
     beta = 0.85
     seeds = [42, 101, 202, 303, 404]
 
@@ -235,7 +237,36 @@ def run_phase4_experiment(save_dir: str = "results", epochs: int = 35):
     plot_path = os.path.join(save_dir, "phase4_neural_fde_training.png")
     plt.savefig(plot_path, dpi=200)
     plt.close()
-    print(f"\n[Artifact Saved] Phase IV multi-seed training figure saved to {plot_path}\n")
+
+    # Save structured benchmark data for research paper reporting
+    import json
+    data_record = {
+        "seeds": seeds,
+        "epochs": epochs,
+        "proposed": {
+            "loss_histories": [l for l in prop_losses],
+            "final_loss_mean": float(np.mean([l[-1] for l in prop_losses])),
+            "final_loss_std": float(np.std([l[-1] for l in prop_losses])),
+            "gradient_error_percent": (err_prop_arr * 100).tolist(),
+            "gradient_error_mean": float(np.mean(err_prop_arr) * 100),
+            "gradient_error_std": float(np.std(err_prop_arr) * 100),
+        },
+        "baseline_no_jump": {
+            "loss_histories": [l for l in naive_losses],
+            "final_loss_mean": float(np.mean([l[-1] for l in naive_losses])),
+            "final_loss_std": float(np.std([l[-1] for l in naive_losses])),
+            "gradient_error_percent": (err_naive_arr * 100).tolist(),
+            "gradient_error_mean": float(np.mean(err_naive_arr) * 100),
+            "gradient_error_std": float(np.std(err_naive_arr) * 100),
+        },
+        "gradient_error_reduction_factor": float(np.mean(err_naive_arr) / np.mean(err_prop_arr)),
+    }
+    json_path = os.path.join(save_dir, "phase4_neural_fde_training.json")
+    with open(json_path, "w") as f:
+        json.dump(data_record, f, indent=2)
+
+    print(f"\n[Artifact Saved] Phase IV multi-seed training figure saved to {plot_path}")
+    print(f"[Artifact Saved] Phase IV multi-seed training data saved to {json_path}\n")
 
 
 if __name__ == "__main__":

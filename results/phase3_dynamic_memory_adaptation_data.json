@@ -1,0 +1,36 @@
+{
+  "beta": 0.85,
+  "T": 6.0,
+  "num_steps": 300,
+  "tol": 0.001,
+  "runtime_ms": 49.987199978204444,
+  "avg_modes": 22.219269102990033,
+  "max_modes": 24,
+  "num_adaptations": 4,
+  "expansion_events": [
+    {
+      "step": 9,
+      "t": 0.18,
+      "K_old": 8,
+      "K_new": 12
+    },
+    {
+      "step": 16,
+      "t": 0.32,
+      "K_old": 12,
+      "K_new": 16
+    },
+    {
+      "step": 32,
+      "t": 0.64,
+      "K_old": 16,
+      "K_new": 20
+    },
+    {
+      "step": 73,
+      "t": 1.46,
+      "K_old": 20,
+      "K_new": 24
+    }
+  ]
+}

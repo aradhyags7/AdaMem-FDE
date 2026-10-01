@@ -34,6 +34,9 @@ def run_phase6_experiment(
     save_dir: str = "results",
 ):
     os.makedirs(save_dir, exist_ok=True)
+    from experiments.archive_utils import archive_previous_results
+    archive_previous_results("phase6_scaling", ["phase6_long_horizon_scaling.png", "phase6_long_horizon_scaling_data.json"], save_dir=save_dir)
+
     system = FractionalLorenz(beta=beta)
     z0 = torch.tensor([1.0, 1.0, 1.0], dtype=torch.float64)
 
@@ -124,7 +127,22 @@ def run_phase6_experiment(
     plot_path = os.path.join(save_dir, "phase6_long_horizon_scaling.png")
     plt.savefig(plot_path, dpi=200)
     plt.close()
-    print(f"\n[Artifact Saved] Scalability comparison saved to {plot_path}\n")
+
+    # Save structured benchmark data for research paper reporting
+    import json
+    data_record = {
+        "step_counts": step_counts,
+        "full_history_times": full_history_times,
+        "fixed_soe_times": fixed_soe_times,
+        "adamem_times": adamem_times,
+        "adamem_avg_modes": adamem_avg_modes,
+    }
+    json_path = os.path.join(save_dir, "phase6_long_horizon_scaling_data.json")
+    with open(json_path, "w") as f:
+        json.dump(data_record, f, indent=2)
+
+    print(f"\n[Artifact Saved] Scalability comparison saved to {plot_path}")
+    print(f"[Artifact Saved] Scalability data saved to {json_path}\n")
 
 
 if __name__ == "__main__":

@@ -33,6 +33,9 @@ def run_phase1_experiment(
     save_dir: str = "results",
 ):
     os.makedirs(save_dir, exist_ok=True)
+    from experiments.archive_utils import archive_previous_results
+    archive_previous_results("phase1_validation", ["phase1_mittag_leffler_benchmark.png", "phase1_mittag_leffler_data.json"], save_dir=save_dir)
+
     t_grid = torch.linspace(0.0, T, num_steps + 1, dtype=torch.float64)
     z0 = torch.tensor([1.0], dtype=torch.float64)
 
@@ -110,7 +113,24 @@ def run_phase1_experiment(
     plot_path = os.path.join(save_dir, "phase1_mittag_leffler_benchmark.png")
     plt.savefig(plot_path, dpi=200)
     plt.close()
-    print(f"\n[Artifact Saved] Benchmark figure saved to {plot_path}\n")
+
+    # Save structured benchmark data for research paper reporting
+    import json
+    data_record = []
+    for name, _, err, runtime, avg_k, max_k in results:
+        data_record.append({
+            "method": name,
+            "forward_error": float(err),
+            "runtime_ms": float(runtime),
+            "avg_modes": float(avg_k),
+            "max_modes": int(max_k),
+        })
+    json_path = os.path.join(save_dir, "phase1_mittag_leffler_data.json")
+    with open(json_path, "w") as f:
+        json.dump(data_record, f, indent=2)
+
+    print(f"\n[Artifact Saved] Benchmark figure saved to {plot_path}")
+    print(f"[Artifact Saved] Benchmark data saved to {json_path}\n")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,44 @@
+[
+  {
+    "method": "Full-History (O(N^2))",
+    "forward_error": 0.0010378906374973616,
+    "runtime_ms": 48.570699989795685,
+    "avg_modes": 500.0,
+    "max_modes": 500
+  },
+  {
+    "method": "Fixed SOE (K=8)",
+    "forward_error": 0.16981084538324626,
+    "runtime_ms": 33.50690001389012,
+    "avg_modes": 8.0,
+    "max_modes": 8
+  },
+  {
+    "method": "Fixed SOE (K=16)",
+    "forward_error": 0.03376916588229701,
+    "runtime_ms": 31.066899973666295,
+    "avg_modes": 16.0,
+    "max_modes": 16
+  },
+  {
+    "method": "Fixed SOE (K=24)",
+    "forward_error": 0.0026986704997363237,
+    "runtime_ms": 31.568000005790964,
+    "avg_modes": 24.0,
+    "max_modes": 24
+  },
+  {
+    "method": "AdaMem (tol=0.001)",
+    "forward_error": 0.007443105273980764,
+    "runtime_ms": 53.97929999162443,
+    "avg_modes": 21.828343313373253,
+    "max_modes": 24
+  },
+  {
+    "method": "AdaMem (tol=0.0001)",
+    "forward_error": 0.010136832938330037,
+    "runtime_ms": 52.486500004306436,
+    "avg_modes": 30.97005988023952,
+    "max_modes": 32
+  }
+]

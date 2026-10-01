@@ -303,6 +303,10 @@ def main():
     seeds = [42, 101, 202, 303, 404, 505, 606, 707][: args.seeds]
     t_grid, z_true = make_truth(args.fit_stride)
     t_np = t_grid.numpy()
+    n_fit = len(t_np) - 1
+    tag = f"noise{args.noise:g}_N{n_fit}_tol{args.fit_tol:g}_K{args.fit_kmax}"
+    from experiments.archive_utils import archive_previous_results
+    archive_previous_results(f"phase8_{tag}", [f"phase8_joint_beta_discovery_{tag}.png", f"phase8_multiseed_{tag}.json"], save_dir=args.save_dir)
 
     specs = []
     for s in seeds:

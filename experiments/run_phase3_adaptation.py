@@ -31,6 +31,9 @@ def run_phase3_experiment(
     save_dir: str = "results",
 ):
     os.makedirs(save_dir, exist_ok=True)
+    from experiments.archive_utils import archive_previous_results
+    archive_previous_results("phase3_adaptation", ["phase3_dynamic_memory_adaptation.png", "phase3_dynamic_memory_adaptation_data.json"], save_dir=save_dir)
+
     t_grid = torch.linspace(0.0, T, num_steps + 1, dtype=torch.float64)
     z0 = torch.tensor([1.0, 0.0], dtype=torch.float64)
 
@@ -121,7 +124,26 @@ def run_phase3_experiment(
     plot_path = os.path.join(save_dir, "phase3_dynamic_memory_adaptation.png")
     plt.savefig(plot_path, dpi=200)
     plt.close()
-    print(f"\n[Artifact Saved] Phase III adaptation figure saved to {plot_path}\n")
+
+    # Save structured benchmark data for research paper reporting
+    import json
+    data_record = {
+        "beta": beta,
+        "T": T,
+        "num_steps": num_steps,
+        "tol": tol,
+        "runtime_ms": float(runtime),
+        "avg_modes": float(sol.avg_modes),
+        "max_modes": int(sol.max_modes),
+        "num_adaptations": int(sol.num_adaptations),
+        "expansion_events": [{"step": ev.step_idx, "t": float(ev.t), "K_old": ev.K_old, "K_new": ev.K_new} for ev in expansions],
+    }
+    json_path = os.path.join(save_dir, "phase3_dynamic_memory_adaptation_data.json")
+    with open(json_path, "w") as f:
+        json.dump(data_record, f, indent=2)
+
+    print(f"\n[Artifact Saved] Phase III adaptation figure saved to {plot_path}")
+    print(f"[Artifact Saved] Phase III adaptation data saved to {json_path}\n")
 
 
 if __name__ == "__main__":
