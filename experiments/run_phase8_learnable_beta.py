@@ -78,27 +78,11 @@ def generate_ground_truth(true_beta: float = 0.75, T: float = 3.0, num_steps: in
     return t_grid, z0, z_true
 
 
-def run_phase8_experiment(save_dir: str = "results", epochs: int = 75):
-    os.makedirs(save_dir, exist_ok=True)
-    true_beta = 0.75
-    init_beta = 0.50
-
-    print("\n" + "=" * 82)
-    print("  PHASE VIII: LEARNABLE FRACTIONAL ORDER (BETA) JOINT DISCOVERY BENCHMARK")
-    print(f"  Target System: Damped Fractional Oscillator (True beta* = {true_beta:.2f})")
-    print(f"  Initialization: beta_0 = {init_beta:.2f} (Misspecified by Delta beta = {init_beta - true_beta:+.2f})")
-    print(f"  Training Schedule: {epochs} epochs with Cosine Annealing learning rate")
-    print("=" * 82)
-
-    t_grid, z0, z_true = generate_ground_truth(true_beta=true_beta, T=3.0, num_steps=60)
-
-    # ---------------------------------------------------------
-    # 1. Proposed Model: Joint Optimization of (\theta, \beta)
-    # ---------------------------------------------------------
-    print("\n[Model 1] Training Proposed Joint AdaMem-FDE (Learnable beta + Vector Field)...")
-    field_joint = ParameterizedOscillator(init_omega2=0.80, init_mu=0.20)
-    model_joint = NeuralFDE(
-        vector_field=field_joint,
+def train_single_beta_run(init_beta: float, seed: int, epochs: int, t_grid, z0, z_true):
+    torch.manual_seed(seed)
+    field = ParameterizedOscillator(init_omega2=0.80, init_mu=0.20)
+    model = NeuralFDE(
+        vector_field=field,
         beta=init_beta,
         learnable_beta=True,
         default_tol=1e-3,
@@ -106,163 +90,149 @@ def run_phase8_experiment(save_dir: str = "results", epochs: int = 75):
         K_min=4,
         K_max=24,
     )
-    param_groups = [
-        {"params": [model_joint._raw_beta], "lr": 0.12},
-        {"params": field_joint.parameters(), "lr": 0.04},
-    ]
-    optimizer_joint = torch.optim.Adam(param_groups)
-    scheduler_joint = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_joint, T_max=epochs, eta_min=5e-3)
+    opt_field = torch.optim.Adam(field.parameters(), lr=0.04)
+    sched_field = torch.optim.lr_scheduler.CosineAnnealingLR(opt_field, T_max=epochs, eta_min=1e-3)
+    opt_beta = torch.optim.Adam([model._raw_beta], lr=0.18)
+    sched_beta = torch.optim.lr_scheduler.StepLR(opt_beta, step_size=40, gamma=0.7)
 
-    loss_history_joint = []
-    beta_history_joint = []
-    omega_history_joint = []
-    mu_history_joint = []
+    loss_hist = []
+    beta_hist = []
 
-    t0_joint = time.perf_counter()
     for ep in range(epochs):
-        optimizer_joint.zero_grad()
-        pred_joint = model_joint(z0, t_grid, method="adamem", tol=1e-3)
-        loss = torch.mean((pred_joint - z_true) ** 2)
+        opt_field.zero_grad()
+        opt_beta.zero_grad()
+        pred = model(z0, t_grid, method="adamem", tol=1e-3)
+        loss = torch.mean((pred - z_true) ** 2)
         loss.backward()
-        optimizer_joint.step()
-        scheduler_joint.step()
+        opt_field.step()
+        opt_beta.step()
+        sched_field.step()
+        sched_beta.step()
 
-        curr_beta = model_joint.get_beta_value()
-        curr_omega = field_joint.omega2.item()
-        curr_mu = field_joint.mu.item()
+        loss_hist.append(loss.item())
+        beta_hist.append(model.get_beta_value())
 
-        loss_history_joint.append(loss.item())
-        beta_history_joint.append(curr_beta)
-        omega_history_joint.append(curr_omega)
-        mu_history_joint.append(curr_mu)
+    final_pred = model(z0, t_grid, method="adamem", tol=1e-3).detach()
+    return loss_hist, beta_hist, final_pred, model.get_beta_value(), field.omega2.item(), field.mu.item()
 
-        if (ep + 1) % 10 == 0 or ep == 0 or ep == epochs - 1:
-            print(
-                f"  Epoch {ep+1:02d}/{epochs:02d} | Loss: {loss.item():.5e} | "
-                f"beta: {curr_beta:.4f} (target: {true_beta:.2f}) | "
-                f"omega^2: {curr_omega:.4f} (1.50) | mu: {curr_mu:.4f} (0.50)"
-            )
-    t_joint = time.perf_counter() - t0_joint
 
-    # ---------------------------------------------------------
-    # 2. Baseline Model: Fixed Misspecified Beta (\beta = 0.50)
-    # ---------------------------------------------------------
-    print("\n[Model 2] Training Fixed Misspecified Baseline (Frozen beta = 0.50)...")
-    field_fixed = ParameterizedOscillator(init_omega2=0.80, init_mu=0.20)
-    model_fixed = NeuralFDE(
-        vector_field=field_fixed,
-        beta=init_beta,
-        learnable_beta=False,
-        default_tol=1e-3,
-        K_init=8,
-        K_min=4,
-        K_max=24,
-    )
-    optimizer_fixed = torch.optim.Adam(model_fixed.parameters(), lr=0.045)
-    scheduler_fixed = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_fixed, T_max=epochs, eta_min=2e-3)
+def run_phase8_experiment(save_dir: str = "results", epochs: int = 70):
+    os.makedirs(save_dir, exist_ok=True)
+    true_beta = 0.75
+    init_betas = [0.30, 0.50, 0.90]
+    seeds = [42, 101, 202]
 
-    loss_history_fixed = []
-    t0_fixed = time.perf_counter()
-    for ep in range(epochs):
-        optimizer_fixed.zero_grad()
-        pred_fixed = model_fixed(z0, t_grid, method="adamem", tol=1e-3)
-        loss = torch.mean((pred_fixed - z_true) ** 2)
-        loss.backward()
-        optimizer_fixed.step()
-        scheduler_fixed.step()
-        loss_history_fixed.append(loss.item())
+    print("\n" + "=" * 84)
+    print("  PHASE VIII: LEARNABLE FRACTIONAL ORDER (BETA) MULTI-INITIALIZATION BENCHMARK")
+    print(f"  Target System: Damped Fractional Oscillator (True beta* = {true_beta:.2f})")
+    print(f"  Initial Orders: beta_0 in {init_betas}, Seeds: {seeds}, Epochs: {epochs}")
+    print("=" * 84)
 
-        if (ep + 1) % 10 == 0 or ep == 0 or ep == epochs - 1:
-            print(
-                f"  Epoch {ep+1:02d}/{epochs:02d} | Loss: {loss.item():.5e} | "
-                f"beta: {init_beta:.4f} [FROZEN] | "
-                f"omega^2: {field_fixed.omega2.item():.4f} | mu: {field_fixed.mu.item():.4f}"
-            )
-    t_fixed = time.perf_counter() - t0_fixed
+    t_grid, z0, z_true = generate_ground_truth(true_beta=true_beta, T=3.0, num_steps=60)
 
-    # ---------------------------------------------------------
-    # 3. Reference Oracle Model: Known Ground-Truth Beta (\beta = 0.75)
-    # ---------------------------------------------------------
-    print("\n[Model 3] Training Known-Order Oracle Reference (Known beta* = 0.75)...")
-    field_oracle = ParameterizedOscillator(init_omega2=0.80, init_mu=0.20)
-    model_oracle = NeuralFDE(
-        vector_field=field_oracle,
-        beta=true_beta,
-        learnable_beta=False,
-        default_tol=1e-3,
-        K_init=8,
-        K_min=4,
-        K_max=24,
-    )
-    optimizer_oracle = torch.optim.Adam(model_oracle.parameters(), lr=0.035)
-    scheduler_oracle = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_oracle, T_max=epochs, eta_min=1e-3)
+    # 1. Multi-beta0, multi-seed training
+    results_by_beta0 = {}
+    for b0 in init_betas:
+        print(f"\n--- Testing Initial Order beta_0 = {b0:.2f} (Delta beta = {b0 - true_beta:+.2f}) ---")
+        runs = []
+        for s in seeds:
+            lh, bh, fp, final_b, final_w, final_m = train_single_beta_run(b0, s, epochs, t_grid, z0, z_true)
+            runs.append({
+                "seed": s, "loss_hist": lh, "beta_hist": bh, "final_pred": fp,
+                "final_beta": final_b, "final_omega": final_w, "final_mu": final_m,
+                "rel_err": abs(final_b - true_beta) / true_beta * 100.0,
+            })
+            print(f"  Seed {s:3d} | Final Loss: {lh[-1]:.4e} | Recovered beta: {final_b:.4f} (err: {runs[-1]['rel_err']:.2f}%) | omega^2: {final_w:.4f} | mu: {final_m:.4f}")
+        results_by_beta0[b0] = runs
 
-    loss_history_oracle = []
-    t0_oracle = time.perf_counter()
-    for ep in range(epochs):
-        optimizer_oracle.zero_grad()
-        pred_oracle = model_oracle(z0, t_grid, method="adamem", tol=1e-3)
-        loss = torch.mean((pred_oracle - z_true) ** 2)
-        loss.backward()
-        optimizer_oracle.step()
-        scheduler_oracle.step()
-        loss_history_oracle.append(loss.item())
-    t_oracle = time.perf_counter() - t0_oracle
+    # 2. Fixed Misspecified Baseline (beta = 0.50 frozen, 3 seeds)
+    print("\n--- Training Fixed Misspecified Baseline (Frozen beta = 0.50) ---")
+    fixed_losses = []
+    fixed_preds = []
+    for s in seeds:
+        torch.manual_seed(s)
+        field_fixed = ParameterizedOscillator(init_omega2=0.80, init_mu=0.20)
+        model_fixed = NeuralFDE(vector_field=field_fixed, beta=0.50, learnable_beta=False, default_tol=1e-3, K_init=8, K_min=4, K_max=24)
+        opt_fixed = torch.optim.Adam(model_fixed.parameters(), lr=0.04)
+        sched_fixed = torch.optim.lr_scheduler.CosineAnnealingLR(opt_fixed, T_max=epochs, eta_min=1e-3)
+        lh = []
+        for ep in range(epochs):
+            opt_fixed.zero_grad()
+            pred = model_fixed(z0, t_grid, method="adamem", tol=1e-3)
+            loss = torch.mean((pred - z_true) ** 2)
+            loss.backward()
+            opt_fixed.step()
+            sched_fixed.step()
+            lh.append(loss.item())
+        fixed_losses.append(lh)
+        fixed_preds.append(model_fixed(z0, t_grid, method="adamem", tol=1e-3).detach())
+        print(f"  Seed {s:3d} | Final Loss: {lh[-1]:.4e} | beta: 0.5000 [FROZEN]")
 
-    # Evaluate final rollouts and dynamic memory modes
-    from core.solvers.adaptive_soe import AdaptiveSOEFDESolver
-    solver_eval = AdaptiveSOEFDESolver(
-        beta=model_joint.get_beta_value(), tol=1e-3, K_init=8, K_min=4, K_max=24
-    )
-    sol_joint = solver_eval.solve(field_joint, z0, t_grid)
-    final_pred_joint = sol_joint.z.detach()
-    active_modes_joint = sol_joint.modes_history
+    # 3. Known-Order Oracle Reference (beta* = 0.75 known, 3 seeds)
+    print("\n--- Training Known-Order Oracle Reference (Known beta* = 0.75) ---")
+    oracle_losses = []
+    oracle_preds = []
+    for s in seeds:
+        torch.manual_seed(s)
+        field_oracle = ParameterizedOscillator(init_omega2=0.80, init_mu=0.20)
+        model_oracle = NeuralFDE(vector_field=field_oracle, beta=true_beta, learnable_beta=False, default_tol=1e-3, K_init=8, K_min=4, K_max=24)
+        opt_oracle = torch.optim.Adam(model_oracle.parameters(), lr=0.035)
+        sched_oracle = torch.optim.lr_scheduler.CosineAnnealingLR(opt_oracle, T_max=epochs, eta_min=1e-3)
+        lh = []
+        for ep in range(epochs):
+            opt_oracle.zero_grad()
+            pred = model_oracle(z0, t_grid, method="adamem", tol=1e-3)
+            loss = torch.mean((pred - z_true) ** 2)
+            loss.backward()
+            opt_oracle.step()
+            sched_oracle.step()
+            lh.append(loss.item())
+        oracle_losses.append(lh)
+        oracle_preds.append(model_oracle(z0, t_grid, method="adamem", tol=1e-3).detach())
+        print(f"  Seed {s:3d} | Final Loss: {lh[-1]:.4e} | beta: 0.7500 [ORACLE]")
 
-    final_pred_fixed = model_fixed(z0, t_grid, method="adamem", tol=1e-3).detach()
-    final_pred_oracle = model_oracle(z0, t_grid, method="adamem", tol=1e-3).detach()
+    # Summary Statistics Table
+    print("\n" + "=" * 84)
+    print(f"{'Initialization / Baseline':<32} | {'Final Loss (Mean +/- Std)':<26} | {'Recovered beta':<20}")
+    print("-" * 84)
+    for b0 in init_betas:
+        b_vals = [r["final_beta"] for r in results_by_beta0[b0]]
+        l_vals = [r["loss_hist"][-1] for r in results_by_beta0[b0]]
+        err_vals = [r["rel_err"] for r in results_by_beta0[b0]]
+        label = f"Joint AdaMem (beta0={b0:.2f})"
+        print(f"{label:<32} | {np.mean(l_vals):.4e} +/- {np.std(l_vals):.4e}    | {np.mean(b_vals):.4f} +/- {np.std(b_vals):.4f} ({np.mean(err_vals):.1f}%)")
 
-    # Quantitative Summary Table
-    final_beta = model_joint.get_beta_value()
-    beta_err = abs(final_beta - true_beta)
-    rel_err_pct = (beta_err / true_beta) * 100.0
-    print("\n" + "=" * 82)
-    print(f"{'Method / Configuration':<32} | {'Final Loss':<12} | {'Recovered beta':<16} | {'Status':<14}")
-    print("-" * 82)
-    print(f"{'Proposed Joint AdaMem-FDE':<32} | {loss_history_joint[-1]:<12.4e} | {final_beta:.4f} ({rel_err_pct:.2f}% err) | Converged")
-    print(f"{'Fixed Misspecified (beta=0.50)':<32} | {loss_history_fixed[-1]:<12.4e} | 0.5000 (Frozen)   | Misspecified")
-    print(f"{'Known-Order Oracle (beta=0.75)':<32} | {loss_history_oracle[-1]:<12.4e} | 0.7500 (Oracle)   | Reference")
-    print("=" * 82)
+    l_fix = [lh[-1] for lh in fixed_losses]
+    l_orc = [lh[-1] for lh in oracle_losses]
+    print(f"{'Fixed Misspecified (beta=0.50)':<32} | {np.mean(l_fix):.4e} +/- {np.std(l_fix):.4e}    | 0.5000 [Frozen] (33.3%)")
+    print(f"{'Known-Order Oracle (beta=0.75)':<32} | {np.mean(l_orc):.4e} +/- {np.std(l_orc):.4e}    | 0.7500 [Oracle] (0.0%)")
+    print("=" * 84)
 
     # ---------------------------------------------------------
     # Visualizations: 4-Panel Publication-Grade Figure
     # ---------------------------------------------------------
     t_np = t_grid.cpu().numpy()
     z_true_np = z_true.cpu().numpy()
-    pred_joint_np = final_pred_joint.cpu().numpy()
-    pred_fixed_np = final_pred_fixed.cpu().numpy()
-    pred_oracle_np = final_pred_oracle.cpu().numpy()
+    epochs_arr = np.arange(1, epochs + 1)
 
     fig, axs = plt.subplots(2, 2, figsize=(13, 10))
 
     # Panel A: Trajectory Rollout Comparison
     axs[0, 0].plot(t_np, z_true_np[:, 0], "k-", lw=2.4, label=r"Ground Truth ($\beta^*=0.75$)")
-    axs[0, 0].plot(
-        t_np, pred_joint_np[:, 0], "b--", lw=2.0, label=rf"Joint AdaMem ($\beta={final_beta:.3f}$)"
-    )
-    axs[0, 0].plot(
-        t_np, pred_fixed_np[:, 0], "r:", lw=1.8, label=r"Fixed Misspecified ($\beta=0.50$)"
-    )
+    colors_b = {0.30: "purple", 0.50: "blue", 0.90: "teal"}
+    for b0 in init_betas:
+        pred_mean = np.mean([r["final_pred"][:, 0].cpu().numpy() for r in results_by_beta0[b0]], axis=0)
+        b_mean = np.mean([r["final_beta"] for r in results_by_beta0[b0]])
+        axs[0, 0].plot(t_np, pred_mean, color=colors_b[b0], linestyle="--", lw=1.8, label=rf"Recovered ($\beta_0={b0:.2f} \to {b_mean:.3f}$)")
+    axs[0, 0].plot(t_np, np.mean([p[:, 0].cpu().numpy() for p in fixed_preds], axis=0), "r:", lw=1.8, label=r"Fixed Misspecified ($\beta=0.50$)")
     axs[0, 0].set_xlabel("Time $t$", fontsize=11)
     axs[0, 0].set_ylabel(r"Displacement $x_1(t)$", fontsize=11)
-    axs[0, 0].set_title(r"(a) Trajectory Reconstruction & Nonlocal Damping", fontsize=12, fontweight="bold")
+    axs[0, 0].set_title(r"(a) Trajectory Reconstruction Across Initializations", fontsize=12, fontweight="bold")
     axs[0, 0].grid(True, alpha=0.3)
-    axs[0, 0].legend(fontsize=9, loc="upper right")
+    axs[0, 0].legend(fontsize=8, loc="upper right")
 
-    # Panel B: Fractional Order Discovery Trajectory
-    epochs_arr = np.arange(1, epochs + 1)
+    # Panel B: Fractional Order Discovery Trajectory Fan
     axs[0, 1].axhline(true_beta, color="k", linestyle="--", lw=2.0, label=r"True Order $\beta^* = 0.75$")
-    axs[0, 1].plot(epochs_arr, beta_history_joint, "b-o", lw=2.0, ms=4, label=r"Discovered $\beta(t)$")
-    # Exact 2% target bound: [0.75 * 0.98, 0.75 * 1.02] = [0.735, 0.765]
     axs[0, 1].fill_between(
         epochs_arr,
         true_beta * 0.98,
@@ -271,27 +241,39 @@ def run_phase8_experiment(save_dir: str = "results", epochs: int = 75):
         alpha=0.15,
         label=r"$\pm 2\%$ Target Margin ($[0.735, 0.765]$)",
     )
+    for b0 in init_betas:
+        b_arrs = np.array([r["beta_hist"] for r in results_by_beta0[b0]])
+        b_mean = np.mean(b_arrs, axis=0)
+        b_std = np.std(b_arrs, axis=0)
+        axs[0, 1].plot(epochs_arr, b_mean, color=colors_b[b0], lw=2.0, label=rf"Init $\beta_0={b0:.2f} \to {b_mean[-1]:.3f}\pm{b_std[-1]:.3f}$")
+        axs[0, 1].fill_between(epochs_arr, b_mean - b_std, b_mean + b_std, color=colors_b[b0], alpha=0.15)
     axs[0, 1].set_xlabel("Training Epoch", fontsize=11)
-    axs[0, 1].set_ylabel(r"Fractional Order $\beta$", fontsize=11)
-    axs[0, 1].set_title(r"(b) Analytical Adjoint Discovery of Fractional Order", fontsize=12, fontweight="bold")
-    axs[0, 1].set_ylim(0.45, 0.82)
+    axs[0, 1].set_ylabel(r"Fractional Order $\beta(t)$", fontsize=11)
+    axs[0, 1].set_title(r"(b) Convergence of $\beta(t)$ from Multiple Initializations", fontsize=12, fontweight="bold")
+    axs[0, 1].set_ylim(0.25, 0.95)
     axs[0, 1].grid(True, alpha=0.3)
-    axs[0, 1].legend(fontsize=9, loc="lower right")
+    axs[0, 1].legend(fontsize=8, loc="center right")
 
     # Panel C: Loss Convergence Comparison
-    axs[1, 0].semilogy(epochs_arr, loss_history_joint, "b-o", lw=1.8, ms=4, label=r"Proposed Joint AdaMem-FDE")
-    axs[1, 0].semilogy(epochs_arr, loss_history_fixed, "r--s", lw=1.8, ms=4, label=r"Fixed Misspecified ($\beta=0.50$)")
-    axs[1, 0].semilogy(epochs_arr, loss_history_oracle, "g-.^", lw=1.5, ms=4, label=r"Known Oracle ($\beta^*=0.75$)")
+    for b0 in init_betas:
+        l_arrs = np.array([r["loss_hist"] for r in results_by_beta0[b0]])
+        l_mean = np.mean(l_arrs, axis=0)
+        axs[1, 0].semilogy(epochs_arr, l_mean, color=colors_b[b0], lw=1.8, label=rf"Joint AdaMem ($\beta_0={b0:.2f}$)")
+    axs[1, 0].semilogy(epochs_arr, np.mean(fixed_losses, axis=0), "r--", lw=1.8, label=r"Fixed Misspecified ($\beta=0.50$)")
+    axs[1, 0].semilogy(epochs_arr, np.mean(oracle_losses, axis=0), "g-.^", lw=1.5, ms=3, label=r"Known Oracle ($\beta^*=0.75$)")
     axs[1, 0].set_xlabel("Training Epoch", fontsize=11)
-    axs[1, 0].set_ylabel(r"Mean Squared Error $\mathcal{L}_{\mathrm{MSE}}$ (Log Scale)", fontsize=11)
-    axs[1, 0].set_title(r"(c) Loss Convergence: Joint vs Misspecified Orders", fontsize=12, fontweight="bold")
+    axs[1, 0].set_ylabel(r"MSE Loss (Log Scale)", fontsize=11)
+    axs[1, 0].set_title(r"(c) Multi-Seed Loss Convergence", fontsize=12, fontweight="bold")
     axs[1, 0].grid(True, alpha=0.3, which="both")
-    axs[1, 0].legend(fontsize=9)
+    axs[1, 0].legend(fontsize=8)
 
     # Panel D: Dynamic Memory Mode Allocation K(t)
-    t_modes = np.linspace(0, 3.0, len(active_modes_joint))
-    axs[1, 1].step(t_modes, active_modes_joint, where="post", color="purple", lw=2.0, label=r"AdaMem Active Modes $K(t)$")
-    axs[1, 1].axhline(24, color="gray", linestyle=":", lw=1.5, label=r"Allocation Bound ($K_{\max}=24$)")
+    from core.solvers.adaptive_soe import AdaptiveSOEFDESolver
+    solver_eval = AdaptiveSOEFDESolver(beta=0.75, tol=1e-3, K_init=8, K_min=4, K_max=24)
+    sol_eval = solver_eval.solve(ParameterizedOscillator(1.50, 0.50), z0, t_grid)
+    t_modes = np.linspace(0, 3.0, len(sol_eval.modes_history))
+    axs[1, 1].step(t_modes, sol_eval.modes_history, where="post", color="purple", lw=2.0, label=r"Active Modes $K(t)$")
+    axs[1, 1].axhline(24, color="gray", linestyle=":", lw=1.5, label=r"Max Modes ($K_{\max}=24$)")
     axs[1, 1].set_xlabel("Time $t$", fontsize=11)
     axs[1, 1].set_ylabel(r"Active Exponential Modes $K(t)$", fontsize=11)
     axs[1, 1].set_title(r"(d) Dynamic Memory Mode Allocation $K(t)$", fontsize=12, fontweight="bold")
