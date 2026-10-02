@@ -1,4 +1,4 @@
-"""
+r"""
 Error-Adaptive SOE Fractional Differential Equation Solver (AdaMem-FDE).
 
 Dynamically adapts memory representation K(t) and auxiliary states m(t)
@@ -47,7 +47,7 @@ class AdaptiveSOEFDESolver:
         prune_ratio: float = 0.05,
         patience: int = 3,
     ):
-        """
+        r"""
         Args:
             beta: Fractional order 0 < beta <= 1.
             tol: Prescribed memory error tolerance \epsilon_{tol}.
@@ -103,17 +103,20 @@ class AdaptiveSOEFDESolver:
             SolverSolution containing trajectory, events, and metrics.
         """
         N = len(t_grid) - 1
-        dt = float((t_grid[1] - t_grid[0]).item())
+        dts = t_grid[1:] - t_grid[:-1]
+        dt_min = float(torch.min(dts).item())
         T_horizon = float((t_grid[-1] - t_grid[0]).item())
+        is_uniform = bool(torch.allclose(dts, dts[0], rtol=1e-4, atol=1e-7))
 
         device = z0.device
         dtype = z0.dtype
-        gamma_factor = 1.0 / sp.gamma(self.beta)
+        beta_val = float(self.beta.item()) if isinstance(self.beta, torch.Tensor) else float(self.beta)
+        gamma_factor = 1.0 / sp.gamma(beta_val)
 
         # Initialize embedded memory controller
         controller = MemoryErrorController(
-            beta=self.beta,
-            delta_t=dt,
+            beta=beta_val,
+            delta_t=dt_min,
             T=T_horizon,
             tol=self.tol,
             K_init=self.K_init,
@@ -137,11 +140,13 @@ class AdaptiveSOEFDESolver:
         m_history = []
 
         # ETD operators for initial modes
-        E, phi_1, phi_2 = self._compute_etd_operators(controller.lambdas_t, dt)
+        dt_0 = float(dts[0].item())
+        E, phi_1, phi_2 = self._compute_etd_operators(controller.lambdas_t, dt_0)
 
         for n in range(N):
             t_curr = float(t_grid[n].item())
             t_next = float(t_grid[n + 1].item())
+            dt_n = float(dts[n].item())
 
             # 1. Error check and dynamic memory adaptation at step boundary
             m, event = controller.step_adaptation(
@@ -149,9 +154,9 @@ class AdaptiveSOEFDESolver:
             )
             m_history.append(m.clone())
 
-            # If adaptation occurred, recompute ETD operators for the updated modes
-            if event is not None:
-                E, phi_1, phi_2 = self._compute_etd_operators(controller.lambdas_t, dt)
+            # If adaptation occurred or mesh is non-uniform, update ETD operators
+            if event is not None or not is_uniform:
+                E, phi_1, phi_2 = self._compute_etd_operators(controller.lambdas_t, dt_n)
 
             # 2. Vector field evaluation
             w = controller.weights_t
@@ -159,15 +164,16 @@ class AdaptiveSOEFDESolver:
 
             # 3. ETD-RK2 Step
             # Predictor
-            m_pred = E * m + dt * (phi_1 * F_curr)
+            m_pred = E * m + dt_n * (phi_1 * F_curr)
             z_pred = z0 + gamma_factor * torch.sum(m_pred * w, dim=-1)
             F_pred = f(z_pred, t_next).unsqueeze(-1)
 
             # Corrector
-            m = m_pred + dt * (phi_2 * (F_pred - F_curr))
+            m = m_pred + dt_n * (phi_2 * (F_pred - F_curr))
 
             # 4. State reconstruction at t_{n+1}
             z[n + 1] = z0 + gamma_factor * torch.sum(m * w, dim=-1)
+
 
         # Log final mode and auxiliary state
         controller.active_modes_history.append(controller.current_K)

@@ -1,4 +1,4 @@
-"""
+r"""
 Fixed-Order SOE Fractional Differential Equation Solver (Baseline 2).
 
 Integrates the augmented memory state system:
@@ -74,38 +74,37 @@ class FixedSOEFDESolver:
             z_trajectory: State trajectory of shape (N+1, ..., d).
         """
         N = len(t_grid) - 1
-        dt = float((t_grid[1] - t_grid[0]).item())
+        dts = t_grid[1:] - t_grid[:-1]  # Shape (N,)
+        dt_min = float(torch.min(dts).item())
         T_horizon = float((t_grid[-1] - t_grid[0]).item())
 
         device = z0.device
         dtype = z0.dtype
-        gamma_factor = 1.0 / sp.gamma(self.beta)
+        beta_val = float(self.beta.item()) if isinstance(self.beta, torch.Tensor) else float(self.beta)
+        gamma_factor = 1.0 / sp.gamma(beta_val)
 
-        self._ensure_weights(dt, T_horizon, dtype, device)
+        self._ensure_weights(dt_min, T_horizon, dtype, device)
         K = len(self.lambdas_t)
         self.num_modes = K
 
-        # Precompute ETD operators:
-        # For dot{m}_k = -\lambda_k m_k + F:
-        # E = exp(-\lambda_k * dt)
-        # phi_1 = (1 - exp(-\lambda_k * dt)) / (\lambda_k * dt)
-        # phi_2 = (exp(-\lambda_k * dt) - 1 + \lambda_k * dt) / ((\lambda_k * dt)^2)
-        lam = self.lambdas_t  # (K,)
-        lam_dt = lam * dt
-        E = torch.exp(-lam_dt)  # (K,)
+        # Precompute vectorized ETD operators for arbitrary (uniform or graded) time steps:
+        # dts has shape (N,), lam has shape (K,) -> lam_dt has shape (N, K)
+        lam = self.lambdas_t
+        lam_dt = dts.unsqueeze(-1) * lam.unsqueeze(0)  # (N, K)
+        E = torch.exp(-lam_dt)  # (N, K)
 
-        # Stable calculation of phi_1 and phi_2 near zero
+        # Numerically stable calculation of phi_1 and phi_2 near zero
         small_mask = lam_dt < 1e-4
         phi_1 = torch.where(
             small_mask,
             1.0 - 0.5 * lam_dt + (1.0 / 6.0) * (lam_dt ** 2),
             (1.0 - E) / lam_dt,
-        )
+        )  # (N, K)
         phi_2 = torch.where(
             small_mask,
             0.5 - (1.0 / 6.0) * lam_dt + (1.0 / 24.0) * (lam_dt ** 2),
             (E - 1.0 + lam_dt) / (lam_dt ** 2),
-        )
+        )  # (N, K)
 
         # Allocate trajectory
         shape = (N + 1,) + z0.shape
@@ -122,6 +121,10 @@ class FixedSOEFDESolver:
         for n in range(N):
             t_curr = float(t_grid[n].item())
             t_next = float(t_grid[n + 1].item())
+            dt_n = dts[n]  # step size for interval [t_n, t_{n+1}]
+            E_n = E[n]
+            p1_n = phi_1[n]
+            p2_n = phi_2[n]
 
             # Evaluate f(z(t_n), t_n)
             F_curr = f(z[n], t_curr)  # shape (..., d)
@@ -130,7 +133,7 @@ class FixedSOEFDESolver:
 
             # Stage 1: Predictor for m_{n+1}
             # a = E * m_n + dt * phi_1 * F_curr
-            m_pred = E * m + dt * (phi_1 * F_curr_exp)
+            m_pred = E_n * m + dt_n * (p1_n * F_curr_exp)
 
             # Evaluate state at predictor
             # z_pred = z0 + gamma_factor * sum_{k=1}^K w_k * m_pred_k
@@ -139,9 +142,10 @@ class FixedSOEFDESolver:
 
             # Stage 2: ETD-RK2 Corrector
             # m_{n+1} = a + dt * phi_2 * (F_pred - F_curr)
-            m = m_pred + dt * (phi_2 * (F_pred - F_curr_exp))
+            m = m_pred + dt_n * (p2_n * (F_pred - F_curr_exp))
 
             # Reconstruct exact state at t_{n+1}
             z[n + 1] = z0 + gamma_factor * torch.sum(m * w, dim=-1)
 
         return z
+

@@ -1,4 +1,4 @@
-"""
+r"""
 Custom PyTorch Autograd Adjoint Solver with Dynamic Memory Representation Transitions.
 
 Implements backward adjoint ODE propagation for AdaMem-FDE:
@@ -67,7 +67,9 @@ class AdaMemAdjointFunction(torch.autograd.Function):
         ctx.save_for_backward(z0, sol.z, beta_saved, *params)
         ctx.events = sol.events
         ctx.m_history = sol.m_history
-        ctx.dt = float((t_grid[1] - t_grid[0]).item())
+        dts = t_grid[1:] - t_grid[:-1]
+        ctx.dt_min = float(torch.min(dts).item())
+        ctx.dt = float(dts[0].item())
         ctx.modes_history = sol.modes_history
 
         return sol.z
@@ -113,7 +115,7 @@ class AdaMemAdjointFunction(torch.autograd.Function):
         # grad_output has shape (N+1, ..., d)
         current_K = ctx.modes_history[-1]
         current_soe = generator.generate(
-            beta=beta, delta_t=dt, T=T_horizon, num_modes=current_K
+            beta=beta, delta_t=ctx.dt_min, T=T_horizon, num_modes=current_K
         )
         lambdas_t, weights_t = current_soe.to_torch(dtype=dtype, device=device)
 
@@ -138,6 +140,7 @@ class AdaMemAdjointFunction(torch.autograd.Function):
         # Backward integration from N-1 down to 0
         for n in range(N - 1, -1, -1):
             t_curr = float(t_grid[n].item())
+            dt_n = float((t_grid[n + 1] - t_grid[n]).item())
             z_n = z_traj[n].detach().requires_grad_(True)
 
             # 1. Sum of adjoint modes: v = \sum_j a_{m, j}
@@ -163,7 +166,7 @@ class AdaMemAdjointFunction(torch.autograd.Function):
                             g = vjp_params[idx]
                             idx += 1
                             if g is not None:
-                                grad_params[i] += dt * g
+                                grad_params[i] += dt_n * g
 
                 # Compute VJP for state: v * df/dz
                 vjp_z = torch.autograd.grad(
@@ -176,8 +179,8 @@ class AdaMemAdjointFunction(torch.autograd.Function):
 
             # 3. Adjoint ODE step backward using ETD:
             # For d a_m / d\tau = -\lambda_k a_m + coupling:
-            # a_m^n = E * a_m^{n+1} + dt * phi_1 * coupling
-            lam_dt = lambdas_t * dt
+            # a_m^n = E * a_m^{n+1} + dt_n * phi_1 * coupling
+            lam_dt = lambdas_t * dt_n
             E = torch.exp(-lam_dt)
             small_mask = lam_dt < 1e-4
             phi_1 = torch.where(
@@ -187,7 +190,7 @@ class AdaMemAdjointFunction(torch.autograd.Function):
             )
 
             coupling = gamma_factor * (vjp_z.unsqueeze(-1) if vjp_z is not None else 0.0) * w_exp
-            a_m = E * a_m + dt * (phi_1 * coupling)
+            a_m = E * a_m + dt_n * (phi_1 * coupling)
 
             # Add observation gradient at t_n
             if torch.any(grad_output[n] != 0.0):
@@ -202,7 +205,7 @@ class AdaMemAdjointFunction(torch.autograd.Function):
                 sum_wm = torch.sum(m_n * weights_t, dim=-1)
                 sum_dwm = torch.sum(m_n * dw_dbeta, dim=-1)
                 dz_dbeta_n = (-psi_beta * gamma_factor) * sum_wm + gamma_factor * sum_dwm
-                total_sens = grad_output[n] + dt * (vjp_z if vjp_z is not None else 0.0)
+                total_sens = grad_output[n] + dt_n * (vjp_z if vjp_z is not None else 0.0)
                 grad_beta = grad_beta + torch.sum(total_sens * dz_dbeta_n)
 
             # 4. Check for representation transition at step n
@@ -226,7 +229,7 @@ class AdaMemAdjointFunction(torch.autograd.Function):
                 # Update current active modes to K_old
                 current_K = ev.K_old
                 current_soe = generator.generate(
-                    beta=beta, delta_t=dt, T=T_horizon, num_modes=current_K
+                    beta=beta, delta_t=ctx.dt_min, T=T_horizon, num_modes=current_K
                 )
                 lambdas_t, weights_t = current_soe.to_torch(dtype=dtype, device=device)
                 w_exp = weights_t.unsqueeze(0).expand(z0.shape + (current_K,))
@@ -249,7 +252,7 @@ def adamem_integrate(
     use_adjoint_jump: bool = True,
     parameters: Optional[Tuple[torch.nn.Parameter, ...]] = None,
 ) -> torch.Tensor:
-    """
+    r"""
     High-level integration function for AdaMem-FDE with custom adjoint backprop.
 
     Args:
