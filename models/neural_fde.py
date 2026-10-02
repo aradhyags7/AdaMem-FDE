@@ -14,6 +14,7 @@ from core.adjoint.adamem_adjoint import adamem_integrate
 from core.solvers.fixed_soe import FixedSOEFDESolver
 from core.solvers.full_history import FullHistoryFDESolver
 from core.solvers.adaptive_soe import AdaptiveSOEFDESolver
+from core.solvers.incommensurate_soe import IncommensurateSOEFDESolver, incommensurate_adamem_integrate
 
 
 class VectorFieldNetwork(nn.Module):
@@ -70,14 +71,15 @@ class VectorFieldNetwork(nn.Module):
 
 
 class NeuralFDE(nn.Module):
-    """
+    r"""
     Neural Fractional Differential Equation wrapper with optional learnable fractional order beta.
+    Supports both scalar commensurate beta and multi-order incommensurate vector \vec{\beta} \in (0, 1)^d.
     """
 
     def __init__(
         self,
         vector_field: nn.Module,
-        beta: float = 0.8,
+        beta: Union[float, torch.Tensor, list, np.ndarray] = 0.8,
         learnable_beta: bool = False,
         beta_min: float = 0.05,
         beta_max: float = 0.98,
@@ -87,7 +89,6 @@ class NeuralFDE(nn.Module):
         K_max: int = 48,
     ):
         super().__init__()
-        assert 0.0 < beta <= 1.0, f"Expected 0 < beta <= 1, got {beta}"
         assert 0.0 < beta_min < beta_max <= 1.0, f"Invalid beta bounds: [{beta_min}, {beta_max}]"
         self.vector_field = vector_field
         self.learnable_beta = learnable_beta
@@ -98,46 +99,89 @@ class NeuralFDE(nn.Module):
         self.K_min = K_min
         self.K_max = K_max
 
-        if learnable_beta:
-            # Invert sigmoid mapping: beta = beta_min + (beta_max - beta_min) * sigmoid(eta)
-            clipped_beta = max(min(beta, beta_max - 1e-4), beta_min + 1e-4)
-            normalized = (clipped_beta - beta_min) / (beta_max - beta_min)
-            init_logit = float(np.log(normalized / (1.0 - normalized)))
-            self._raw_beta = nn.Parameter(torch.tensor(init_logit, dtype=torch.float32))
-            self._fixed_beta = None
+        # Detect incommensurate vector beta
+        is_vec = False
+        if isinstance(beta, (list, tuple, np.ndarray)):
+            b_arr = np.asarray(beta, dtype=np.float32)
+            if b_arr.ndim == 1 and len(b_arr) > 1:
+                is_vec = True
+        elif isinstance(beta, torch.Tensor) and beta.ndim == 1 and len(beta) > 1:
+            is_vec = True
+            b_arr = beta.detach().cpu().numpy().astype(np.float32)
+
+        self.is_incommensurate = is_vec
+
+        if is_vec:
+            assert np.all((b_arr > 0.0) & (b_arr <= 1.0)), f"All beta elements must be in (0, 1], got {b_arr}"
+            self.d = len(b_arr)
+            if learnable_beta:
+                clipped = np.clip(b_arr, beta_min + 1e-4, beta_max - 1e-4)
+                norm = (clipped - beta_min) / (beta_max - beta_min)
+                logits = np.log(norm / (1.0 - norm))
+                self._raw_beta = nn.Parameter(torch.tensor(logits, dtype=torch.float32))
+                self._fixed_beta = None
+            else:
+                self.register_parameter("_raw_beta", None)
+                self._fixed_beta = torch.tensor(b_arr, dtype=torch.float32)
         else:
-            self.register_parameter("_raw_beta", None)
-            self._fixed_beta = float(beta)
+            b_val = float(beta.item()) if isinstance(beta, torch.Tensor) else float(beta)
+            assert 0.0 < b_val <= 1.0, f"Expected 0 < beta <= 1, got {b_val}"
+            self.d = 1
+            if learnable_beta:
+                clipped_beta = max(min(b_val, beta_max - 1e-4), beta_min + 1e-4)
+                normalized = (clipped_beta - beta_min) / (beta_max - beta_min)
+                init_logit = float(np.log(normalized / (1.0 - normalized)))
+                self._raw_beta = nn.Parameter(torch.tensor(init_logit, dtype=torch.float32))
+                self._fixed_beta = None
+            else:
+                self.register_parameter("_raw_beta", None)
+                self._fixed_beta = float(b_val)
 
     @property
     def beta(self) -> Union[float, torch.Tensor]:
         """
         Fractional derivative order beta in (beta_min, beta_max).
-        If learnable_beta=True, returns a 0-dim torch.Tensor with autograd tracking.
-        If learnable_beta=False, returns a float.
+        If learnable_beta=True, returns torch.Tensor with autograd tracking.
+        If learnable_beta=False and scalar, returns float.
         """
         if self.learnable_beta and self._raw_beta is not None:
             return self.beta_min + (self.beta_max - self.beta_min) * torch.sigmoid(self._raw_beta)
         return self._fixed_beta
 
     @beta.setter
-    def beta(self, value: Union[float, torch.Tensor]):
+    def beta(self, value: Union[float, torch.Tensor, list, np.ndarray]):
         """Sets beta, adjusting internal parameter if learnable."""
-        val_float = float(value.item()) if isinstance(value, torch.Tensor) else float(value)
-        if self.learnable_beta and self._raw_beta is not None:
-            clipped = max(min(val_float, self.beta_max - 1e-4), self.beta_min + 1e-4)
-            normalized = (clipped - self.beta_min) / (self.beta_max - self.beta_min)
-            new_logit = float(np.log(normalized / (1.0 - normalized)))
-            with torch.no_grad():
-                self._raw_beta.copy_(
-                    torch.tensor(new_logit, dtype=self._raw_beta.dtype, device=self._raw_beta.device)
-                )
+        if self.is_incommensurate:
+            if isinstance(value, torch.Tensor):
+                val_np = value.detach().cpu().numpy().astype(np.float32)
+            else:
+                val_np = np.asarray(value, dtype=np.float32)
+            if self.learnable_beta and self._raw_beta is not None:
+                clipped = np.clip(val_np, self.beta_min + 1e-4, self.beta_max - 1e-4)
+                norm = (clipped - self.beta_min) / (self.beta_max - self.beta_min)
+                new_logits = np.log(norm / (1.0 - norm))
+                with torch.no_grad():
+                    self._raw_beta.copy_(torch.tensor(new_logits, dtype=self._raw_beta.dtype, device=self._raw_beta.device))
+            else:
+                self._fixed_beta = torch.tensor(val_np, dtype=torch.float32)
         else:
-            self._fixed_beta = val_float
+            val_float = float(value.item()) if isinstance(value, torch.Tensor) else float(value)
+            if self.learnable_beta and self._raw_beta is not None:
+                clipped = max(min(val_float, self.beta_max - 1e-4), self.beta_min + 1e-4)
+                normalized = (clipped - self.beta_min) / (self.beta_max - self.beta_min)
+                new_logit = float(np.log(normalized / (1.0 - normalized)))
+                with torch.no_grad():
+                    self._raw_beta.copy_(
+                        torch.tensor(new_logit, dtype=self._raw_beta.dtype, device=self._raw_beta.device)
+                    )
+            else:
+                self._fixed_beta = val_float
 
-    def get_beta_value(self) -> float:
-        """Returns the scalar numerical value of current beta."""
+    def get_beta_value(self) -> Union[float, np.ndarray]:
+        """Returns the scalar or array numerical value of current beta."""
         b = self.beta
+        if self.is_incommensurate:
+            return b.detach().cpu().numpy() if isinstance(b, torch.Tensor) else np.asarray(b)
         return float(b.item()) if isinstance(b, torch.Tensor) else float(b)
 
     def forward(
@@ -153,7 +197,7 @@ class NeuralFDE(nn.Module):
 
         Args:
             z0: Initial condition (..., state_dim).
-            t_grid: Time grid [t_0, ..., t_N].
+            t_grid: Time grid [t_0, ..., t_N] (uniform or graded).
             method: 'adamem' (proposed), 'fixed' (fixed SOE),
                     'full' (Adams-Bashforth-Moulton reference),
                     'naive_adaptive' (ablation: adaptive without adjoint jump).
@@ -165,6 +209,24 @@ class NeuralFDE(nn.Module):
         """
         tol_val = tol or self.default_tol
         current_beta = self.beta
+
+        # If incommensurate multi-order system
+        if self.is_incommensurate:
+            beta_vec = current_beta if isinstance(current_beta, torch.Tensor) else torch.tensor(current_beta, dtype=z0.dtype, device=z0.device)
+            if method in ("adamem", "naive_adaptive"):
+                return incommensurate_adamem_integrate(
+                    f=self.vector_field,
+                    z0=z0,
+                    t_grid=t_grid,
+                    beta_vec=beta_vec,
+                    num_modes=self.K_init,
+                    parameters=tuple(p for p in self.vector_field.parameters() if p.requires_grad),
+                )
+            elif method == "fixed":
+                solver = IncommensurateSOEFDESolver(beta=beta_vec, num_modes=fixed_modes)
+                return solver.solve(self.vector_field, z0, t_grid)
+            else:
+                raise NotImplementedError(f"Method '{method}' is not supported for incommensurate systems.")
 
         if method == "adamem":
             return adamem_integrate(
@@ -209,3 +271,4 @@ class NeuralFDE(nn.Module):
 
         else:
             raise ValueError(f"Unknown integration method: '{method}'")
+

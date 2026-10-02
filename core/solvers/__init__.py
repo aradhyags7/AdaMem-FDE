@@ -8,10 +8,14 @@ Fractional Differential Equation Solvers:
 from .full_history import FullHistoryFDESolver
 from .fixed_soe import FixedSOEFDESolver
 from .adaptive_soe import AdaptiveSOEFDESolver, SolverSolution
+from .incommensurate_soe import IncommensurateSOEFDESolver, incommensurate_adamem_integrate
 
 __all__ = [
     "FullHistoryFDESolver",
     "FixedSOEFDESolver",
     "AdaptiveSOEFDESolver",
     "SolverSolution",
+    "IncommensurateSOEFDESolver",
+    "incommensurate_adamem_integrate",
 ]
+
