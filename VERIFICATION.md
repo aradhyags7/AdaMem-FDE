@@ -100,6 +100,28 @@ Before approving the manuscript, the author can verify these 5 specific numbers 
 
 ---
 
+### Section 5.3 Extension: L-BFGS Sensitivity & Non-Linear Stiff Dynamics Failure Mode
+**Source File**: `results/phase4_lbfgs_stiff_ablation.json`
+
+| Metric / Parameter | Paper Value | JSON Field Key | JSON Line | Raw JSON Value | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| L-BFGS Proposed Final Loss | $(6.12 \pm 7.44) \times 10^{-5}$ | `proposed.final_loss_mean`, `std` | Lines 11, 12 | `6.1224e-05`, `7.4428e-05` | MATCH ✅ |
+| L-BFGS Naive Final Loss | $(3.65 \pm 4.16) \times 10^{-3}$ | `baseline_no_jump.final_loss_mean`, `std` | Lines 88, 89 | `0.0036538`, `0.0041554` | MATCH ✅ |
+| L-BFGS Loss Gap Factor | $59.7\times$ | `lbfgs_final_loss_gap_factor` | Line 164 | `59.6791` | MATCH ✅ |
+| Proposed Angular Deflection | $1.01^\circ \pm 0.77^\circ$ | `proposed.angular_error_deg_mean`, `std` | Lines 75, 76 | `1.0115°`, `0.7665°` | MATCH ✅ |
+| Naive Angular Deflection | $17.69^\circ \pm 8.45^\circ$ | `baseline_no_jump.angular_error_deg_mean`, `std` | Lines 152, 153 | `17.6857°`, `8.4464°` | MATCH ✅ |
+| Peak Naive Angular Error | $34.27^\circ$ (Seed 101) | `baseline_no_jump.angular_errors_deg[1]` | Line 156 | `34.27325°` | MATCH ✅ |
+| VDP $\mu=0.5$ Proposed Error | $8.65\%$ | `van_der_pol_stiffness_sweep[0].err_prop_pct` | Line 172 | `8.6468%` | MATCH ✅ |
+| VDP $\mu=0.5$ Naive Error | $19.96\%$ | `van_der_pol_stiffness_sweep[0].err_naive_pct` | Line 173 | `19.9572%` | MATCH ✅ |
+| VDP $\mu=1.2$ Proposed Error | $16.68\%$ | `van_der_pol_stiffness_sweep[1].err_prop_pct` | Line 182 | `16.6809%` | MATCH ✅ |
+| VDP $\mu=1.2$ Naive Error | $68.84\%$ | `van_der_pol_stiffness_sweep[1].err_naive_pct` | Line 183 | `68.8365%` | MATCH ✅ |
+| VDP $\mu=2.5$ Proposed Error | $14.74\%$ | `van_der_pol_stiffness_sweep[2].err_prop_pct` | Line 192 | `14.7429%` | MATCH ✅ |
+| VDP $\mu=2.5$ Naive Error | $133.82\%$ | `van_der_pol_stiffness_sweep[2].err_naive_pct` | Line 193 | `133.8177%` | MATCH ✅ |
+| VDP $\mu=2.5$ Error Ratio | $9.1\times$ | `van_der_pol_stiffness_sweep[2].error_ratio` | Line 194 | `9.0767` | MATCH ✅ |
+
+---
+
+
 ### Table 4: Phase VI Long-Horizon Linear Scaling ($N = 10^5$)
 **Source File**: `results/phase6_long_horizon_scaling_data.json`
 
