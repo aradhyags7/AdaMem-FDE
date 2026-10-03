@@ -65,12 +65,12 @@ def run_singularity_quenching_experiment():
         "runs": {},
     }
 
-    fig, axes = plt.subplots(1, 3, figsize=(18, 5.5))
-    fig.patch.set_facecolor("#0f172a")
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5.2))
+    fig.patch.set_facecolor("white")
 
     for idx, beta in enumerate(betas):
         ax = axes[idx]
-        ax.set_facecolor("#1e293b")
+        ax.set_facecolor("white")
 
         r_opt = optimal_grading_exponent(beta)
         print(f"\nEvaluating beta = {beta:.2f} (optimal grading exponent r = {r_opt:.3f}):")
@@ -114,40 +114,41 @@ def run_singularity_quenching_experiment():
             "slope_graded": float(p_g),
         }
 
-        # Plot curves
-        ax.loglog(N_values, uniform_errors, "o--", color="#ef4444", lw=2.2, ms=7, label=f"Uniform (Slope: {p_u:.2f})")
-        ax.loglog(N_values, graded_errors, "s-", color="#10b981", lw=2.5, ms=7, label=f"Graded r={r_opt:.2f} (Slope: {p_g:.2f})")
+        # Plot curves in light mode
+        ax.loglog(N_values, uniform_errors, "o--", color="#dc2626", lw=2.2, ms=6, label=f"Uniform (Slope: {p_u:.2f})")
+        ax.loglog(N_values, graded_errors, "s-", color="#059669", lw=2.5, ms=6, label=f"Graded r={r_opt:.2f} (Slope: {p_g:.2f})")
 
         # Reference slopes
         N_arr = np.array(N_values, dtype=float)
         ref_o1 = uniform_errors[0] * (N_arr[0] / N_arr) ** beta
         ref_o2 = graded_errors[0] * (N_arr[0] / N_arr) ** 2.0
-        ax.loglog(N_values, ref_o1, ":", color="#94a3b8", alpha=0.6, label=f"Theory O(N^{{-{beta}}})")
-        ax.loglog(N_values, ref_o2, "-.", color="#38bdf8", alpha=0.6, label="Theory O(N^-2)")
+        ax.loglog(N_values, ref_o1, ":", color="#64748b", alpha=0.8, lw=1.5, label=f"Theory O(N^{{-{beta}}})")
+        ax.loglog(N_values, ref_o2, "-.", color="#0284c7", alpha=0.8, lw=1.5, label="Theory O(N^-2)")
 
-        ax.set_title(f"Fractional Order $\\beta = {beta}$ ($r = {r_opt:.2f}$)", color="white", fontsize=13, fontweight="bold", pad=12)
-        ax.set_xlabel("Mesh Intervals $N$", color="#cbd5e1", fontsize=11)
+        ax.set_title(f"Fractional Order $\\beta = {beta}$ ($r = {r_opt:.2f}$)", color="#0f172a", fontsize=12, fontweight="bold", pad=10)
+        ax.set_xlabel("Mesh Intervals $N$", color="#0f172a", fontsize=11)
         if idx == 0:
-            ax.set_ylabel(r"Maximum Global Error $\|z - z_{exact}\|_\infty$", color="#cbd5e1", fontsize=11)
+            ax.set_ylabel(r"Maximum Global Error $\|z - z_{\mathrm{exact}}\|_\infty$", color="#0f172a", fontsize=11)
 
-        ax.grid(True, which="both", ls=":", color="#334155", alpha=0.7)
-        ax.tick_params(colors="#cbd5e1")
-        leg = ax.legend(facecolor="#0f172a", edgecolor="#334155", fontsize=9.5)
-        for text in leg.get_texts():
-            text.set_color("white")
+        ax.grid(True, which="both", ls=":", color="#cbd5e1", alpha=0.7)
+        ax.tick_params(colors="#1e293b", which="both")
+        ax.legend(facecolor="white", edgecolor="#cbd5e1", fontsize=9.5)
 
-    plt.suptitle("Caputo Weak Singularity Quenching via Graded Temporal Meshes", color="white", fontsize=16, fontweight="bold", y=1.02)
+    plt.suptitle("Caputo Weak Singularity Quenching via Graded Temporal Meshes", color="#0f172a", fontsize=15, fontweight="bold", y=1.02)
     plt.tight_layout()
 
     plot_path = os.path.join("results", "phase9_graded_singularity_quenching.png")
-    plt.savefig(plot_path, dpi=300, bbox_inches="tight", facecolor=fig.get_facecolor())
+    paper_fig_path = os.path.join("paper", "figures", "phase9_graded_singularity_quenching.png")
+    plt.savefig(plot_path, dpi=300, bbox_inches="tight", facecolor="white")
+    plt.savefig(paper_fig_path, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close()
 
     json_path = os.path.join("results", "phase9_graded_singularity_quenching.json")
     with open(json_path, "w") as fp:
         json.dump(results_data, fp, indent=2)
 
-    print(f"\n[Saved] Figure: {plot_path}")
+    print(f"\n[Saved] Figure (Results): {plot_path}")
+    print(f"[Saved] Figure (Paper): {paper_fig_path}")
     print(f"[Saved] Dataset: {json_path}")
     print("=" * 78)
 
