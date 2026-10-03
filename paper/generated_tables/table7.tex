@@ -1,0 +1,11 @@
+\begin{tabular}{lccc}
+\toprule
+\textbf{Model Formulation} & \textbf{Order Configuration} & \textbf{Trajectory MSE} & \textbf{Dynamical Pathology} \\
+\midrule
+Commensurate Baseline 1 & $\bar{\beta} = 0.90$ (Fast Assumption) & $7.203 \times 10^{-2}$ & --- \\
+Commensurate Baseline 2 & $\bar{\beta} = 0.75$ (Compromise Mean) & $1.667 \times 10^{-2}$ & --- \\
+Commensurate Baseline 3 & $\bar{\beta} = 0.60$ (Slow Assumption) & $1.035 \times 10^{-3}$ & --- \\
+\midrule
+\textbf{Incommensurate AdaMem-FDE} & \textbf{Learned $\vec{\beta} = [0.8626, 0.6043]$} & $\mathbf{4.111 \times 10^{-5}}$ & \textbf{Exact Recovery} \\
+\bottomrule
+\end{tabular}
