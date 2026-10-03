@@ -659,7 +659,30 @@ Naive Adaptive (No $R^T$ Jump) & $69.21\% \pm 8.89\%$ & $2.476 \times 10^{-3} \p
 }
 \end{table}
 
-As documented in \Cref{tab:phase4_results} and \Cref{fig:phase4_ablation}, omitting the transpose jump induces a $69.21\% \pm 8.89\%$ gradient error, a \textbf{$40.7\times$} increase compared to AdaMem-FDE's $1.70\% \pm 0.99\%$ error. Both methods converge to comparable final losses on this benchmark ($2.48 \times 10^{-3}$ without $R^T$ vs. $2.23 \times 10^{-3}$ with $R^T$), because Adam's adaptive moment estimation partially compensates for directional gradient bias on the smooth Duffing loss landscape. However, the $69\%$ gradient distortion constitutes a severe adjoint inconsistency: on harder optimization landscapes (non-convex, stiff, or chaotic dynamics), this level of gradient corruption would be expected to prevent convergence entirely. The exact $R^T$ projection eliminates this risk at the source.
+As documented in \Cref{tab:phase4_results} and \Cref{fig:phase4_ablation}, omitting the transpose jump induces a $69.21\% \pm 8.89\%$ gradient error, a \textbf{$40.7\times$} increase compared to AdaMem-FDE's $1.70\% \pm 0.99\%$ error. Both methods converge to comparable final losses on this benchmark ($2.48 \times 10^{-3}$ without $R^T$ vs. $2.23 \times 10^{-3}$ with $R^T$), because Adam's adaptive moment estimation partially compensates for directional gradient bias on the smooth Duffing loss landscape.
+
+\subsubsection{Empirical Failure Modes of Inconsistent Adjoints: Quasi-Newton Stalling and Stiff Dynamics}
+\label{sec:lbfgs_stiff_ablation}
+
+While coordinate-wise adaptive moment scaling in Adam can partially absorb moderate directional gradient errors on smooth valleys, quasi-Newton optimization and stiff boundary layers expose catastrophic failure modes when the transpose jump condition $R^T$ is omitted. 
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/phase4_lbfgs_stiff_ablation.png}
+\caption{\textbf{Empirical Failure Modes of Inconsistent Adjoints (Phase IV Extension).} (a) L-BFGS loss convergence across 5 random seeds: AdaMem-FDE ($R^T$) achieves superlinear descent to $6.12 \times 10^{-5}$, whereas naive adjoint truncation stalls at $3.65 \times 10^{-3}$ ($59.7\times$ loss gap) due to line search failure. (b) Adjoint gradient angular deflection $\theta$ against finite differences ($1.01^\circ$ for AdaMem vs. $17.69^\circ \pm 8.45^\circ$ for naive). (c) Fractional Van der Pol gradient error $E_g$ across relaxation stiffness $\mu \in [0.5, 2.5]$: naive gradient error compounds to $133.82\%$ across 4 mode adaptation events, whereas AdaMem-FDE maintains bounded error ($14.74\%$).}
+\label{fig:phase4_lbfgs_stiff}
+\end{figure}
+
+\paragraph{Quasi-Newton Sensitivity (L-BFGS).} 
+In quasi-Newton algorithms (such as L-BFGS with Strong Wolfe line searches), descent directions $d_k = -H_k g_k$ rely on curvature pairs $(s_k, y_k)$ satisfying the positive-definiteness condition $s_k^T y_k > 0$. We trained the Neural FDE across the identical 5 random seeds using L-BFGS (\Cref{fig:phase4_lbfgs_stiff}). 
+With the exact transpose jump (\textbf{AdaMem-FDE}), the adjoint gradient retains collinearity with the true finite difference direction, exhibiting an angular error of only $1.01^\circ \pm 0.77^\circ$ and achieving rapid superlinear convergence to an MSE loss of $(6.12 \pm 7.44) \times 10^{-5}$. 
+In contrast, omitting $R^T$ introduces an angular deflection of $17.69^\circ \pm 8.45^\circ$ (reaching $34.27^\circ$ on Seed 101). This directional distortion invalidates the line search sufficient decrease condition, causing the step length $\alpha_k$ to collapse toward zero and prematurely stalling optimization at $(3.65 \pm 4.16) \times 10^{-3}$---a \textbf{$59.7\times$ higher final error} (\Cref{fig:phase4_lbfgs_stiff}a,b).
+
+\paragraph{Compound Degradation in Stiff Dynamics.}
+To examine whether gradient errors compound across successive representation transitions, we evaluate parameter sensitivity $\nabla_\mu \mathcal{L}$ on the Fractional Van der Pol oscillator across increasing non-linear relaxation stiffness $\mu \in \{0.5, 1.2, 2.5\}$ (\Cref{fig:phase4_lbfgs_stiff}c). 
+As non-linear stiffness induces sharper boundary layers and triggers 4 discrete mode adaptation events, omitting $R^T$ causes gradient error to compound monotonically from $19.96\%$ ($\mu=0.5$) to $68.84\%$ ($\mu=1.2$) and explode to \textbf{$133.82\%$} at $\mu=2.5$ ($9.1\times$ higher than AdaMem-FDE's bounded $14.74\%$). 
+These empirical results confirm that exact adjoint jump consistency is mathematically indispensable for reliable gradient-based optimization in complex and stiff regimes.
+
 
 % ----------------------------------------------------------------------------
 \subsection{Phase VI: Long-Horizon Complexity Scaling ($N = 10^5$) on Chaotic Lorenz}
