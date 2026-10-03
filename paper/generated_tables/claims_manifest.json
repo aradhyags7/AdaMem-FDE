@@ -280,6 +280,132 @@
     "computation": "Direct read"
   },
   {
+    "claim": "L-BFGS: Proposed final loss mean",
+    "value": 6.122447171154135e-05,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "proposed.final_loss_mean",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "L-BFGS: Proposed final loss std",
+    "value": 7.442849207652761e-05,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "proposed.final_loss_std",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "L-BFGS: Naive final loss mean",
+    "value": 0.0036538230013940754,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "baseline_no_jump.final_loss_mean",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "L-BFGS: Naive final loss std",
+    "value": 0.004155373701513328,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "baseline_no_jump.final_loss_std",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "L-BFGS: Loss gap factor",
+    "value": 59.679126650680395,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "lbfgs_final_loss_gap_factor",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "L-BFGS: Proposed angular error mean",
+    "value": 1.011532276118807,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "proposed.angular_error_deg_mean",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "L-BFGS: Proposed angular error std",
+    "value": 0.7664515789798488,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "proposed.angular_error_deg_std",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "L-BFGS: Naive angular error mean",
+    "value": 17.685701414827783,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "baseline_no_jump.angular_error_deg_mean",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "L-BFGS: Naive angular error std",
+    "value": 8.446416722386537,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "baseline_no_jump.angular_error_deg_std",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "VDP (mu=0.5): Proposed error pct",
+    "value": 8.646757536545465,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "vdp.mu_0.5.err_prop_pct",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "VDP (mu=0.5): Naive error pct",
+    "value": 19.95720984902703,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "vdp.mu_0.5.err_naive_pct",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "VDP (mu=0.5): Error ratio",
+    "value": 2.308057068175904,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "vdp.mu_0.5.error_ratio",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "VDP (mu=1.2): Proposed error pct",
+    "value": 16.680892396655917,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "vdp.mu_1.2.err_prop_pct",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "VDP (mu=1.2): Naive error pct",
+    "value": 68.83649425983279,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "vdp.mu_1.2.err_naive_pct",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "VDP (mu=1.2): Error ratio",
+    "value": 4.126667364249212,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "vdp.mu_1.2.error_ratio",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "VDP (mu=2.5): Proposed error pct",
+    "value": 14.742943011163884,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "vdp.mu_2.5.err_prop_pct",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "VDP (mu=2.5): Naive error pct",
+    "value": 133.81774692746836,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "vdp.mu_2.5.err_naive_pct",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "VDP (mu=2.5): Error ratio",
+    "value": 9.076732293283422,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_lbfgs_stiff_ablation.json",
+    "source_field": "vdp.mu_2.5.error_ratio",
+    "computation": "Direct read"
+  },
+  {
     "claim": "Table 4: N=500 full_history_time (Measured)",
     "value": 0.07566299999598414,
     "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",

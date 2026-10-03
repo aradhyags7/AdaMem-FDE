@@ -244,6 +244,47 @@ def generate_table3():
 
 
 # ============================================================================
+# PHASE IV EXTENSION — L-BFGS Sensitivity & Stiff Dynamics
+# Source: results/phase4_lbfgs_stiff_ablation.json
+# ============================================================================
+def generate_phase4_lbfgs_claims():
+    src = RESULTS / "phase4_lbfgs_stiff_ablation.json"
+    with open(src) as f:
+        data = json.load(f)
+
+    prop = data["proposed"]
+    naive = data["baseline_no_jump"]
+    gap = data["lbfgs_final_loss_gap_factor"]
+    vdp = data["van_der_pol_stiffness_sweep"]
+
+    add_claim("L-BFGS: Proposed final loss mean", prop["final_loss_mean"], src, "proposed.final_loss_mean", "Direct read")
+    add_claim("L-BFGS: Proposed final loss std", prop["final_loss_std"], src, "proposed.final_loss_std", "Direct read")
+    add_claim("L-BFGS: Naive final loss mean", naive["final_loss_mean"], src, "baseline_no_jump.final_loss_mean", "Direct read")
+    add_claim("L-BFGS: Naive final loss std", naive["final_loss_std"], src, "baseline_no_jump.final_loss_std", "Direct read")
+    add_claim("L-BFGS: Loss gap factor", gap, src, "lbfgs_final_loss_gap_factor", "Direct read")
+
+    add_claim("L-BFGS: Proposed angular error mean", prop["angular_error_deg_mean"], src, "proposed.angular_error_deg_mean", "Direct read")
+    add_claim("L-BFGS: Proposed angular error std", prop["angular_error_deg_std"], src, "proposed.angular_error_deg_std", "Direct read")
+    add_claim("L-BFGS: Naive angular error mean", naive["angular_error_deg_mean"], src, "baseline_no_jump.angular_error_deg_mean", "Direct read")
+    add_claim("L-BFGS: Naive angular error std", naive["angular_error_deg_std"], src, "baseline_no_jump.angular_error_deg_std", "Direct read")
+
+    for item in vdp:
+        mu = item["mu"]
+        add_claim(f"VDP (mu={mu}): Proposed error pct", item["err_prop_pct"], src, f"vdp.mu_{mu}.err_prop_pct", "Direct read")
+        add_claim(f"VDP (mu={mu}): Naive error pct", item["err_naive_pct"], src, f"vdp.mu_{mu}.err_naive_pct", "Direct read")
+        add_claim(f"VDP (mu={mu}): Error ratio", item["error_ratio"], src, f"vdp.mu_{mu}.error_ratio", "Direct read")
+
+    print("=== PHASE IV L-BFGS & STIFF DYNAMICS CLAIMS ===")
+    print(f"  L-BFGS Proposed Loss: {prop['final_loss_mean']:.3e} ± {prop['final_loss_std']:.3e}")
+    print(f"  L-BFGS Naive Loss:    {naive['final_loss_mean']:.3e} ± {naive['final_loss_std']:.3e} (Gap: {gap:.1f}x)")
+    print(f"  Angular Error:        Prop {prop['angular_error_deg_mean']:.2f}° vs Naive {naive['angular_error_deg_mean']:.2f}°")
+    for item in vdp:
+        print(f"  VDP mu={item['mu']}: Prop={item['err_prop_pct']:.2f}%, Naive={item['err_naive_pct']:.2f}% (Ratio: {item['error_ratio']:.1f}x)")
+    print()
+
+
+
+# ============================================================================
 # PHASE VI — Table 4
 # Source: results/phase6_long_horizon_scaling_data.json
 # ============================================================================
@@ -578,6 +619,7 @@ def main():
     generate_table2()
     generate_phase3_claims()
     generate_table3()
+    generate_phase4_lbfgs_claims()
     generate_table4()
     generate_phase7_claims()
     generate_table5()
