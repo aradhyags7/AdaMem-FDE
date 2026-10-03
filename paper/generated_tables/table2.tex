@@ -1,0 +1,12 @@
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Solver Configuration} & \textbf{Modes $K$ (avg / max)} & \textbf{Forward Error $\|e\|_\infty$} & \textbf{Runtime (ms)} & \textbf{Speedup vs Full-History} \\
+\midrule
+Full-History (O(N^2)) & $500$ & $1.038 \times 10^{-3}$ & $48.6$ & $1.0\times$ \\
+Fixed SOE (K=8) & $8$ & $1.698 \times 10^{-1}$ & $33.5$ & $1.4\times$ \\
+Fixed SOE (K=16) & $16$ & $3.377 \times 10^{-2}$ & $31.1$ & $1.6\times$ \\
+Fixed SOE (K=24) & $24$ & $2.699 \times 10^{-3}$ & $31.6$ & $1.5\times$ \\
+AdaMem (tol=0.001) & $21.8$ / $24$ & $7.443 \times 10^{-3}$ & $54.0$ & $0.9\times$ \\
+AdaMem (tol=0.0001) & $31.0$ / $32$ & $1.014 \times 10^{-2}$ & $52.5$ & $0.9\times$ \\
+\bottomrule
+\end{tabular}
