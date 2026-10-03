@@ -122,7 +122,7 @@ In this paper, we resolve these challenges and establish a complete, mathematica
     
     \item \textbf{Caputo Singularity Quenching via Graded Meshes}: We derive the optimal temporal mesh grading exponent $r = (2-\beta)/\beta \ge 1$ for the Caputo initial singularity, and formulate vectorized non-uniform Exponential Time Differencing (ETD-RK2) operators precomputed in $\mathcal{O}(1)$ tensor operations. We demonstrate that graded meshes restore the optimal second-order $\mathcal{O}(N^{-2})$ global convergence rate, reducing numerical error by up to $117.5\times$ on $\beta = 0.50$ and eliminating the discretization error floor.
     
-    \item \textbf{Incommensurate Multi-Order Modeling & Vector Sensitivities}: We extend Neural FDEs to decoupled multi-order systems $\vec{\beta} = (\beta_1, \dots, \beta_d)^T \in (0, 1)^d$ with block-diagonal transpose jump operators $\mathbf{R} = \diag(R_1, \dots, R_d)$. Using exact digamma identities $\frac{\partial w_{i,k}}{\partial \beta_i} = w_{i,k}(\psi(1-\beta_i) - \ln \lambda_{i,k})$, we derive analytical vector sensitivities $\nabla_{\vec{\beta}} \mathcal{L}$ that enable simultaneous learning of physical field weights and multi-scale fractional orders. On coupled non-linear biological oscillators, incommensurate AdaMem-FDE reduces trajectory MSE by $405\times$ to $1750\times$ relative to commensurate baselines.
+    \item \textbf{Incommensurate Multi-Order Modeling \& Vector Sensitivities}: We extend Neural FDEs to decoupled multi-order systems $\vec{\beta} = (\beta_1, \dots, \beta_d)^T \in (0, 1)^d$ with block-diagonal transpose jump operators $\mathbf{R} = \diag(R_1, \dots, R_d)$. Using exact digamma identities $\frac{\partial w_{i,k}}{\partial \beta_i} = w_{i,k}(\psi(1-\beta_i) - \ln \lambda_{i,k})$, we derive analytical vector sensitivities $\nabla_{\vec{\beta}} \mathcal{L}$ that enable simultaneous learning of physical field weights and multi-scale fractional orders. On coupled non-linear biological oscillators, incommensurate AdaMem-FDE reduces trajectory MSE by $405\times$ to $1750\times$ relative to commensurate baselines.
     
     \item \textbf{Five-Decade Linear Scalability}: Across long-horizon benchmarks up to $N = 100,000$ steps on the chaotic 3D Fractional Lorenz attractor, AdaMem-FDE executes in $14.23$ seconds ($\bar{K} \le 32$) with strict $\mathcal{O}(N \cdot \bar{K})$ time scaling, compared to $\sim 19$ minutes projected for full-history convolution.
 \end{enumerate}
@@ -149,6 +149,7 @@ To decouple historical memory, Sch{\"a}dle, L{\'o}pez-Fern{\'a}ndez, and Lubich 
 \small
 \caption{Theoretical positioning of AdaMem-FDE against classical FDE integrators and continuous-depth neural dynamical frameworks. $N$ denotes integration steps, $K$ is static mode count, and $\bar{K}$ is average active modes.}
 \label{tab:theoretical_positioning}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lccccc}
 \toprule
 \textbf{Property / Dimension} & \textbf{Diethelm ABM} & \textbf{Lubich CQ} & \textbf{Fixed SOE} & \textbf{Neural ODE} & \textbf{AdaMem-FDE (Ours)} \\
@@ -163,7 +164,8 @@ Singularity Quenching Graded Mesh & No & No & No & N/A & \textbf{Yes ($r = \frac
 Decoupled Incommensurate $\vec{\beta} \in \R^d$ & No & No & No & N/A & \textbf{Yes ($\mathbf{R} = \diag(R_i)$)} \\
 Analytical Sensitivities $\nabla_{\vec{\beta}} \mathcal{L}$ & No & No & No & N/A & \textbf{Yes ($\psi(\beta)$ Digamma)} \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 % ============================================================================
@@ -206,14 +208,14 @@ Substituting $\tau = e^u$ transforms the half-line $\tau \in (0, \infty)$ to the
 \begin{equation}
     s^{\beta - 1} = \frac{1}{\Gamma(1 - \beta)} \int_{-\infty}^\infty e^{(1 - \beta) u} \exp\left( -s e^u \right) \, du.
 \end{equation}
-To evaluate this integral numerically, we truncate the infinite domain to $[u_{\min}, u_{\max}] = [\ln(1/T), \ln(1/\dt_{\min})]$ and decompose it into dyadic intervals. On each subinterval, Gauss-Legendre quadrature of order $p_{\mathrm{GL}}$ is applied, yielding $K$ discrete nodes $u_k$ and weights $w_k^{\mathrm{GL}}$. The resulting decay rates and weights are:
+To evaluate this integral numerically, we truncate the integration domain to $[u_{\min}, u_{\max}]$ where $u_{\min} = \ln(1/T)$ and $u_{\max} = \ln(1/\dt_{\min})$, and decompose it into dyadic intervals. On each subinterval, Gauss-Legendre quadrature of order $p_{\mathrm{GL}}$ is applied, yielding $K$ discrete nodes $u_k$ and weights $w_k^{\mathrm{GL}}$. The resulting decay rates and weights are:
 \begin{equation}
     \lambda_k = \exp(u_k) > 0, \qquad w_k = \frac{1}{\Gamma(1 - \beta)} w_k^{\mathrm{GL}} \exp\left( (1 - \beta) u_k \right) > 0.
     \label{eq:dyadic_nodes_weights}
 \end{equation}
 Because all $\lambda_k > 0$, the corresponding differential operators are strictly dissipative, guaranteeing unconditional numerical stability.
 
-\subsection{State-Space Augmentation & Exponential Time Differencing (ETD-RK2)}
+\subsection{State-Space Augmentation \& Exponential Time Differencing (ETD-RK2)}
 Substituting \cref{eq:soe_approximation} into the Volterra integral \cref{eq:volterra_integral} yields:
 \begin{equation}
     z(t) \approx z_0 + \frac{1}{\Gamma(\beta)} \sum_{k=1}^K w_k \int_0^t e^{-\lambda_k (t - \tau)} f_\theta(z(\tau), \tau) \, d\tau.
@@ -265,7 +267,7 @@ The exponential filter functions are defined by:
 For $|x| < 10^{-4}$, numerical cancellation in \cref{eq:phi_functions} is eliminated via rapid Taylor expansions:
 $\phi_1(x) = 1 + \frac{x}{2} + \frac{x^2}{6} + \mathcal{O}(x^3)$ and $\phi_2(x) = \frac{1}{2} + \frac{x}{6} + \frac{x^2}{24} + \mathcal{O}(x^3)$.
 
-\subsection{Representation Transitions & The Cauchy-Gram Projection Theorem}
+\subsection{Representation Transitions \& The Cauchy-Gram Projection Theorem}
 \label{subsec:projection_theorem}
 
 Let $t_j$ be an adaptation event where the active memory representation transitions from $K^-$ modes (with poles $\bm{\lambda}^- = \{\lambda_1^-, \dots, \lambda_{K^-}^-\}$) to $K^+$ modes (with poles $\bm{\lambda}^+ = \{\lambda_1^+, \dots, \lambda_{K^+}^+\}$). The incoming auxiliary memory state is $m^- \in \R^{d \times K^-}$, and the outgoing state is $m^+ \in \R^{d \times K^+}$.
@@ -307,7 +309,7 @@ and $C \in \R^{K^+ \times K^-}$ is the cross-Gram matrix between target and sour
 See \cref{sec:appendix_proofs} for the complete analytical proof, establishing positive definiteness of $G$ via Cauchy determinant factorization.
 \end{proof}
 
-\subsection{Adjoint Consistency & The Transpose Jump Condition ($R^T$)}
+\subsection{Adjoint Consistency \& The Transpose Jump Condition ($R^T$)}
 \label{subsec:adjoint_jump_theorem}
 
 We now consider the training of Neural FDEs via continuous adjoint sensitivity analysis. Let the scalar loss functional be $\mathcal{L} = \int_0^T \ell(z(t), t) \, dt + g(z(T))$. In the backward pass, an adjoint state vector must propagate backward in time from $t = T$ to $t = 0$.
@@ -363,7 +365,7 @@ Substituting \cref{eq:forward_state_transition} and \cref{eq:adjoint_jump_condit
 In the absence of \cref{thm:adjoint_jump}, heuristic implementations either zero-pad $a_m$ (when modes are pruned) or slice the tensor (when modes are expanded). This corresponds to replacing $R^T$ with an unweighted canonical injection $P = [\mathbf{I} \; \mathbf{0}]^T$, which violates \cref{eq:adjoint_inner_product_duality} by an error term $\mathcal{E} = \inner{(R^T - P) a_m^+}{m^-} \neq 0$. As proven in our ablation experiments (\cref{sec:ablation_rt}), this omission injects $69.2\%$ gradient error, inducing training divergence.
 \end{remark}
 
-\subsection{Embedded Error Estimation & Dynamic Adaptation Controller}
+\subsection{Embedded Error Estimation \& Dynamic Adaptation Controller}
 To dynamically determine when representation transitions are required, AdaMem-FDE constructs an embedded SOE pair at each step. At the current step with $K$ active modes, we evaluate an embedded higher-order approximation $z_{K+\Delta K}$ using pre-computed auxiliary quadrature nodes. The local memory truncation error estimate is:
 \begin{equation}
     \widehat{\epsilon}_M(t_n) \coloneqq \norm{ z_K(t_n) - z_{K+\Delta K}(t_n) }_2.
@@ -564,7 +566,7 @@ We evaluate AdaMem-FDE on five canonical continuous-time systems spanning linear
 \end{enumerate}
 
 % ----------------------------------------------------------------------------
-\subsection{Phase I & II: Ground-Truth Verification Against Exact Analytical Solutions}
+\subsection{Phase I \& II: Ground-Truth Verification Against Exact Analytical Solutions}
 \label{sec:phase1_results}
 
 We verify forward simulation fidelity against the exact analytical Mittag-Leffler solution with order $\beta = 0.70$, $\lambda = 1.0$, horizon $T = 5.0$, and $N = 500$ steps ($\dt = 0.01$). AdaMem-FDE is evaluated across three tolerance settings ($\etol \in \{10^{-2}, 10^{-3}, 10^{-4}\}$) against Full-History ABM and Fixed SOE ($K \in \{8, 16, 24\}$).
@@ -572,15 +574,16 @@ We verify forward simulation fidelity against the exact analytical Mittag-Leffle
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.98\linewidth]{figures/phase1_mittag_leffler_benchmark.png}
-\caption{\textbf{Phase I & II Ground-Truth Verification on Mittag-Leffler Linear Relaxation} ($\beta = 0.70$). (a) State trajectory compared against exact analytical solution $E_{0.7}(-t^{0.7})$. (b) Absolute error profiles across time; AdaMem-FDE strictly bounds error below tolerance. (c) Dynamic mode adaptation $K(t)$ decaying as memory gradient relaxes. (d) Empirical forward error convergence with step refinement.}
+\caption{\textbf{Phase I \& II Ground-Truth Verification on Mittag-Leffler Linear Relaxation} ($\beta = 0.70$). (a) State trajectory compared against exact analytical solution $E_{0.7}(-t^{0.7})$. (b) Absolute error profiles across time; AdaMem-FDE strictly bounds error below tolerance. (c) Dynamic mode adaptation $K(t)$ decaying as memory gradient relaxes. (d) Empirical forward error convergence with step refinement.}
 \label{fig:phase1_ml}
 \end{figure}
 
 \begin{table}[t]
 \centering
 \small
-\caption{Phase I & II Quantitative Benchmark on Mittag-Leffler Linear Relaxation ($\beta = 0.70$, $T = 5.0$, $N = 500$).}
+\caption{Phase I \& II Quantitative Benchmark on Mittag-Leffler Linear Relaxation ($\beta = 0.70$, $T = 5.0$, $N = 500$).}
 \label{tab:phase1_results}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lcccccc}
 \toprule
 \textbf{Solver Configuration} & \textbf{Modes $K$} & \textbf{Max Error $\|e\|_\infty$} & \textbf{RMSE} & \textbf{Runtime (ms)} & \textbf{Memory (KB)} & \textbf{Speedup} \\
@@ -594,7 +597,8 @@ AdaMem-FDE ($\etol = 10^{-2}$) & $\bar{K} = 6.2$ & $1.82 \times 10^{-3}$ & $8.91
 AdaMem-FDE ($\etol = 10^{-3}$) & $\bar{K} = 10.4$ & $2.45 \times 10^{-4}$ & $1.18 \times 10^{-4}$ & $5.9$ & $7.9$ & $8.2\times$ \\
 AdaMem-FDE ($\etol = 10^{-4}$) & $\bar{K} = 15.8$ & $\mathbf{4.12 \times 10^{-5}}$ & $\mathbf{1.98 \times 10^{-5}}$ & $8.2$ & $11.2$ & $5.9\times$ \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 As shown in \Cref{tab:phase1_results} and \Cref{fig:phase1_ml}, AdaMem-FDE strictly bounds maximum forward error below the user-prescribed tolerance while achieving an $8.2\times$ speedup over full-history convolution. During the initial rapid transient ($t < 1.0$), the controller activates $K = 18$ modes, subsequently pruning down to $\bar{K} = 6.2$ as the trajectory settles into power-law tail relaxation.
@@ -617,10 +621,10 @@ We evaluate dynamic memory mode tracking on the non-linear fractional Duffing os
 \end{figure}
 
 % ----------------------------------------------------------------------------
-\subsection{Phase IV & V: Multi-Seed Adjoint Training & The $R^T$ Jump Ablation Study}
+\subsection{Phase IV \& V: Multi-Seed Adjoint Training \& The $R^T$ Jump Ablation Study}
 \label{sec:ablation_rt}
 
-To test \cref{thm:adjoint_jump}, we conduct an ablation study across five independent random neural network initializations (`seeds = [42, 101, 202, 303, 404]`). We compare:
+To test \cref{thm:adjoint_jump}, we conduct an ablation study across five independent random initializations (seeds $42, 101, 202, 303, 404$). We compare:
 \begin{enumerate}
     \item \textbf{AdaMem-FDE (Proposed)}: Dynamic adaptation with exact transpose jump $a_m^- = R^T a_m^+$.
     \item \textbf{Naive Adaptive (Baseline 4 Ablation)}: Dynamic adaptation with ad-hoc zero-padding/truncation (omitting $R^T$).
@@ -635,15 +639,16 @@ Gradient accuracy is evaluated against two-sided finite difference references:
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.98\linewidth]{figures/phase4_neural_fde_training.png}
-\caption{\textbf{Phase IV & V Multi-Seed Training and $R^T$ Adjoint Jump Ablation Study} across 5 random seeds. (a) Training loss convergence over 100 epochs; omitting $R^T$ (red) leads to catastrophic divergence. (b) Gradient fidelity comparison against finite differences ($40.7\times$ error reduction with $R^T$). (c) Parameter space trajectory $\theta$. (d) Dynamic active modes $K(t)$ during training.}
+\caption{\textbf{Phase IV \& V Multi-Seed Training and $R^T$ Adjoint Jump Ablation Study} across 5 random seeds. (a) Training loss convergence over 100 epochs; omitting $R^T$ (red) leads to catastrophic divergence. (b) Gradient fidelity comparison against finite differences ($40.7\times$ error reduction with $R^T$). (c) Parameter space trajectory $\theta$. (d) Dynamic active modes $K(t)$ during training.}
 \label{fig:phase4_ablation}
 \end{figure}
 
 \begin{table}[t]
 \centering
 \small
-\caption{Phase IV & V Multi-Seed Adjoint Training and Gradient Accuracy Benchmark ($N_{\mathrm{seeds}} = 5$, 100 epochs).}
+\caption{Phase IV \& V Multi-Seed Adjoint Training and Gradient Accuracy Benchmark ($N_{\mathrm{seeds}} = 5$, 100 epochs).}
 \label{tab:phase4_results}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Model / Integration Method} & \textbf{Relative Gradient Error $E_g$} & \textbf{Final Loss (Mean $\pm$ Std)} & \textbf{Divergence Rate} & \textbf{Status} \\
@@ -652,7 +657,8 @@ Fixed SOE ($K = 16$) & $1.42\% \pm 0.81\%$ & $4.12 \times 10^{-4} \pm 1.05 \time
 Naive Adaptive (No $R^T$ Jump) & $69.21\% \pm 8.89\%$ & $1.84 \times 10^{-1} \pm 4.21 \times 10^{-2}$ & $\mathbf{5/5}$ ($\mathbf{100\%}$) & \textbf{Diverged} \\
 \textbf{AdaMem-FDE (Exact $R^T$ Jump)} & $\mathbf{1.70\% \pm 0.99\%}$ & $\mathbf{3.89 \times 10^{-4} \pm 8.74 \times 10^{-5}}$ & $\mathbf{0/5}$ ($\mathbf{0\%}$) & \textbf{Converged} \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 As documented in \Cref{tab:phase4_results} and \Cref{fig:phase4_ablation}, omitting the transpose jump induces a catastrophic $69.21\% \pm 8.89\%$ gradient error, leading to severe training instability and $100\%$ optimization divergence across all five seeds. In sharp contrast, AdaMem-FDE's Cauchy-Gram transpose projection restores gradient fidelity to $1.70\% \pm 0.99\%$---a **$40.7\times$ reduction in gradient error**---yielding monotonic loss convergence matching the fixed oracle baseline.
@@ -675,6 +681,7 @@ To evaluate asymptotic scaling, we integrate the chaotic 3D Fractional Lorenz at
 \small
 \caption{Phase VI Long-Horizon Complexity Scaling on Chaotic Fractional Lorenz Attractor ($\beta = 0.95$).}
 \label{tab:phase6_results}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{rcccccc}
 \toprule
 \textbf{Steps $N$} & \textbf{Horizon $T$} & \textbf{Full-History Runtime} & \textbf{Fixed SOE ($K=16$)} & \textbf{AdaMem-FDE Runtime} & \textbf{AdaMem $\bar{K}$} & \textbf{Speedup} \\
@@ -686,13 +693,14 @@ $10,000$ & $100.0$ & $13.81$ s & $0.841$ s & $1.39$ s & $24.8$ & $9.9\times$ \\
 $50,000$ & $500.0$ & $312.4$ s (Est.) & $4.21$ s & $6.94$ s & $28.6$ & $45.0\times$ \\
 $\mathbf{100,000}$ & $\mathbf{1000.0}$ & $\mathbf{1,093.2\text{ s (Est.)}}$ & $\mathbf{8.94\text{ s}}$ & $\mathbf{14.23\text{ s}}$ & $\mathbf{31.2}$ & $\mathbf{76.8\times}$ \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 The empirical results in \Cref{tab:phase6_results} and \Cref{fig:phase6_scaling} confirm that Full-History ABM exhibits quadratic empirical scaling ($t \sim \mathcal{O}(N^{1.98})$), whereas AdaMem-FDE maintains strict linear complexity ($t \sim \mathcal{O}(N^{1.01})$). At $N = 100,000$ steps, AdaMem-FDE finishes in **$14.23$ seconds** compared to an estimated $1,093$ seconds ($\sim 18.2$ minutes) for full-history convolution, while spatial memory remains bounded at $\mathcal{O}(\bar{K})$ with $\bar{K} = 31.2$.
 
 % ----------------------------------------------------------------------------
-\subsection{Phase VII: Multi-Tolerance Pareto Frontier & Sensitivity Analysis}
+\subsection{Phase VII: Multi-Tolerance Pareto Frontier \& Sensitivity Analysis}
 \label{sec:phase7_results}
 
 We investigate the Pareto trade-off between computational cost and numerical accuracy across three decades of user tolerance: $\etol \in [10^{-5}, 10^{-2}]$ on the fractional oscillator.
@@ -712,10 +720,10 @@ As shown in \Cref{fig:phase7_pareto}:
 \end{enumerate}
 
 % ----------------------------------------------------------------------------
-\subsection{Phase VIII: Joint Discovery of Fractional Order $\beta$ & Discretization Diagnostics}
+\subsection{Phase VIII: Joint Discovery of Fractional Order $\beta$ \& Discretization Diagnostics}
 \label{sec:phase8_results}
 
-We evaluate continuous joint discovery of the physical order $\beta^* = 0.75$ and neural parameters $(\omega^2, \mu)$ on the damped fractional oscillator from three distinct initializations ($\beta_0 \in \{0.30, 0.50, 0.90\}$) across five random seeds under additive Gaussian observation noise ($\sigma \in \{0.0, 0.01, 0.05\}$).
+We evaluate continuous joint discovery of the physical order $\beta^* = 0.75$ and neural parameters $(\omega^2, \mu)$ on the damped fractional oscillator from three initializations ($\beta_0 \in \{0.30, 0.50, 0.90\}$) across five random seeds under additive Gaussian noise ($\sigma \in \{0, 0.01, 0.05\}$).
 
 \begin{figure}[t]
 \centering
@@ -729,6 +737,7 @@ We evaluate continuous joint discovery of the physical order $\beta^* = 0.75$ an
 \small
 \caption{Phase VIII Joint Fractional Order Discovery Benchmark ($N_{\mathrm{seeds}} = 5$, 150 epochs, $\beta^* = 0.75$).}
 \label{tab:phase8_results}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Configuration / Initial Order $\beta_0$} & \textbf{Final $\beta$ (Mean $\pm$ Std)} & \textbf{Relative Error} & \textbf{Within $\pm 2\%$ ($k/5$)} & \textbf{Median Loss} \\
@@ -746,7 +755,8 @@ $N = 60$ ($\dt = 0.050$) & $0.7369 \pm 0.0000$ & $1.75\%$ & $5/5$ & $7.29 \times
 $N = 120$ ($\dt = 0.025$) & $0.7410 \pm 0.0000$ & $1.21\%$ & $5/5$ & $3.45 \times 10^{-5}$ \\
 $N = 300$ ($\dt = 0.010$) & $\mathbf{0.7470 \pm 0.0000}$ & $\mathbf{0.41\%}$ & $\mathbf{5/5}$ & $\mathbf{2.17 \times 10^{-5}}$ \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \paragraph{Diagnostic Analysis of Discretization Convergence:}
@@ -774,6 +784,7 @@ To eliminate the temporal discretization floor observed in Phases VII and VIII, 
 \small
 \caption{Phase IX Graded Temporal Mesh Singularity Quenching Benchmark ($K = 48$ Modes).}
 \label{tab:phase9_results}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lccccc}
 \toprule
 \textbf{Fractional Order} & \textbf{Grading Exponent $r$} & \textbf{Intervals $N$} & \textbf{Uniform Error} & \textbf{Graded Error} & \textbf{Improvement} \\
@@ -790,7 +801,8 @@ To eliminate the temporal discretization floor observed in Phases VII and VIII, 
 & & $400$ & $1.656 \times 10^{-3}$ & $1.582 \times 10^{-4}$ & $\mathbf{10.47\times}$ \\
 & & $800$ & $1.044 \times 10^{-3}$ & $2.419 \times 10^{-4}$ & $\mathbf{4.32\times}$ \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 As documented in \Cref{tab:phase9_results} and \Cref{fig:phase9_graded}:
@@ -818,6 +830,7 @@ We evaluate decoupled multi-order modeling (\cref{subsec:incommensurate}) on the
 \small
 \caption{Phase X Incommensurate Multi-Order Fractional Dynamics Benchmark.}
 \label{tab:phase10_results}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lccc}
 \toprule
 \textbf{Model Formulation} & \textbf{Order Configuration} & \textbf{Trajectory MSE} & \textbf{Dynamical Pathology} \\
@@ -828,7 +841,8 @@ Commensurate Baseline 3 & $\bar{\beta} = 0.60$ (Slow Assumption) & $1.035 \times
 \midrule
 \textbf{Incommensurate AdaMem-FDE} & \textbf{Learned $\vec{\beta} = [0.8626, 0.6043]$} & $\mathbf{4.111 \times 10^{-5}}$ & \textbf{Exact Phase \& Amplitude Recovery} \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 As summarized in \Cref{tab:phase10_results} and \Cref{fig:phase10_incommensurate}:
@@ -841,7 +855,7 @@ As summarized in \Cref{tab:phase10_results} and \Cref{fig:phase10_incommensurate
 % ============================================================================
 % 6. DISCUSSION & IMPACTS
 % ============================================================================
-\section{Discussion, Limitations, & Broader Impacts}
+\section{Discussion, Limitations, \& Broader Impacts}
 \label{sec:discussion}
 
 \subsection{Practical Guidelines: When to Deploy AdaMem-FDE}
@@ -859,7 +873,7 @@ AdaMem-FDE is indicated whenever:
     \item \textbf{Dynamic Mode Memory Allocation Overhead}: For very small systems ($d \le 2$) over short horizons ($N < 100$), the constant overhead of computing Cauchy-Gram projection matrices can exceed the computational savings of mode pruning.
 \end{itemize}
 
-\subsection{Broader Scientific & Engineering Impacts}
+\subsection{Broader Scientific \& Engineering Impacts}
 By overcoming the quadratic computational barrier of non-Markovian continuous-depth models, AdaMem-FDE bridges scientific machine learning and non-equilibrium statistical mechanics. Applications include battery state-of-health forecasting, polymer extrusion modeling, non-invasive dielectric tissue characterization, and subdiffusive contaminant tracking in hydrological aquifers.
 
 % ============================================================================
@@ -885,7 +899,7 @@ In this paper, we introduced \textbf{AdaMem-FDE}, an error-adaptive dynamic memo
 \label{sec:appendix_proofs}
 
 \begin{proof}[Proof of Theorem 3.1]
-Let $\mathcal{H} = L_2([0, \infty))$ be equipped with the standard inner product $\inner{\phi}{\psi} = \int_0^\infty \phi(s) \psi(s) \, ds$. Consider the target basis $\Phi^+ = \{\phi_j^+(s) = e^{-\lambda_j^+ s}\}_{j=1}^{K^+}$ and a source basis function $\phi_k^-(s) = e^{-\lambda_k^- s}$. We seek coefficients $\bm{r}_k = (R_{1,k}, \dots, R_{K^+, k})^T \in \R^{K^+}$ minimizing the squared $L_2$ distance:
+Let $\mathcal{H} = L_2([0, \infty))$ with standard inner product $\inner{\phi}{\psi} = \int_0^\infty \phi(s) \psi(s) \, ds$. Consider target basis $\Phi^+ = \{\phi_j^+(s) = e^{-\lambda_j^+ s}\}_{j=1}^{K^+}$ and source basis function $\phi_k^-(s) = e^{-\lambda_k^- s}$. We seek coefficients $\bm{r}_k = (R_{1,k}, \dots, R_{K^+, k})^T \in \R^{K^+}$ minimizing the squared $L_2$ distance:
 \begin{equation}
     J_k(\bm{r}_k) = \norm{ \phi_k^- - \sum_{j=1}^{K^+} R_{j, k} \phi_j^+ }_{\mathcal{H}}^2 = \inner{\phi_k^- - \sum_{j=1}^{K^+} R_{j, k} \phi_j^+}{\phi_k^- - \sum_{i=1}^{K^+} R_{i, k} \phi_i^+}.
 \end{equation}
@@ -923,6 +937,7 @@ All experiments were conducted on an Intel Core i7 system equipped with PyTorch 
 \small
 \caption{Experimental Hyperparameter Configurations across Benchmark Phases.}
 \label{tab:hyperparameters}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lccccc}
 \toprule
 \textbf{Benchmark Phase} & \textbf{Target System} & \textbf{Integrator} & \textbf{Modes ($K_{\min}, K_{\max}$)} & \textbf{Tolerance $\etol$} & \textbf{Optimizer / LR} \\
@@ -938,7 +953,8 @@ Phase VIII & Oscillator & Adaptive Adjoint & $(4, 24)$ & $10^{-3}$ & Adam ($0.05
 Phase IX & Mittag-Leffler & Graded ETD-RK2 & $48$ (Fixed) & N/A & N/A \\
 Phase X & FitzHugh-Nagumo & Incommensurate Adjoint & $24$ & $10^{-3}$ & Adam ($0.08$) \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \end{document}
