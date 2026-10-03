@@ -1,0 +1,1251 @@
+[
+  {
+    "claim": "Table 2: Full-History (O(N^2)) forward_error",
+    "value": 0.0010378906374973616,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "forward_error",
+    "computation": "Direct read from phase1_mittag_leffler_data.json, method='Full-History (O(N^2))'"
+  },
+  {
+    "claim": "Table 2: Full-History (O(N^2)) runtime_ms",
+    "value": 48.570699989795685,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "runtime_ms",
+    "computation": "Direct read from phase1_mittag_leffler_data.json, method='Full-History (O(N^2))'"
+  },
+  {
+    "claim": "Table 2: Fixed SOE (K=8) forward_error",
+    "value": 0.16981084538324626,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "forward_error",
+    "computation": "Direct read from phase1_mittag_leffler_data.json, method='Fixed SOE (K=8)'"
+  },
+  {
+    "claim": "Table 2: Fixed SOE (K=8) runtime_ms",
+    "value": 33.50690001389012,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "runtime_ms",
+    "computation": "Direct read from phase1_mittag_leffler_data.json, method='Fixed SOE (K=8)'"
+  },
+  {
+    "claim": "Table 2: Fixed SOE (K=16) forward_error",
+    "value": 0.03376916588229701,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "forward_error",
+    "computation": "Direct read from phase1_mittag_leffler_data.json, method='Fixed SOE (K=16)'"
+  },
+  {
+    "claim": "Table 2: Fixed SOE (K=16) runtime_ms",
+    "value": 31.066899973666295,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "runtime_ms",
+    "computation": "Direct read from phase1_mittag_leffler_data.json, method='Fixed SOE (K=16)'"
+  },
+  {
+    "claim": "Table 2: Fixed SOE (K=24) forward_error",
+    "value": 0.0026986704997363237,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "forward_error",
+    "computation": "Direct read from phase1_mittag_leffler_data.json, method='Fixed SOE (K=24)'"
+  },
+  {
+    "claim": "Table 2: Fixed SOE (K=24) runtime_ms",
+    "value": 31.568000005790964,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "runtime_ms",
+    "computation": "Direct read from phase1_mittag_leffler_data.json, method='Fixed SOE (K=24)'"
+  },
+  {
+    "claim": "Table 2: AdaMem (tol=0.001) forward_error",
+    "value": 0.007443105273980764,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "forward_error",
+    "computation": "Direct read from phase1_mittag_leffler_data.json, method='AdaMem (tol=0.001)'"
+  },
+  {
+    "claim": "Table 2: AdaMem (tol=0.001) runtime_ms",
+    "value": 53.97929999162443,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "runtime_ms",
+    "computation": "Direct read from phase1_mittag_leffler_data.json, method='AdaMem (tol=0.001)'"
+  },
+  {
+    "claim": "Table 2: AdaMem (tol=0.0001) forward_error",
+    "value": 0.010136832938330037,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "forward_error",
+    "computation": "Direct read from phase1_mittag_leffler_data.json, method='AdaMem (tol=0.0001)'"
+  },
+  {
+    "claim": "Table 2: AdaMem (tol=0.0001) runtime_ms",
+    "value": 52.486500004306436,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "runtime_ms",
+    "computation": "Direct read from phase1_mittag_leffler_data.json, method='AdaMem (tol=0.0001)'"
+  },
+  {
+    "claim": "Table 2: Full-History (O(N^2)) speedup",
+    "value": 1.0,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "computed: full_rt / rt",
+    "computation": "48.5707 / 48.5707 = 1.0"
+  },
+  {
+    "claim": "Table 2: Fixed SOE (K=8) speedup",
+    "value": 1.449573072103386,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "computed: full_rt / rt",
+    "computation": "48.5707 / 33.5069 = 1.4"
+  },
+  {
+    "claim": "Table 2: Fixed SOE (K=16) speedup",
+    "value": 1.5634228079070136,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "computed: full_rt / rt",
+    "computation": "48.5707 / 31.0669 = 1.6"
+  },
+  {
+    "claim": "Table 2: Fixed SOE (K=24) speedup",
+    "value": 1.5386055493184767,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "computed: full_rt / rt",
+    "computation": "48.5707 / 31.5680 = 1.5"
+  },
+  {
+    "claim": "Table 2: AdaMem (tol=0.001) speedup",
+    "value": 0.8998023315851084,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "computed: full_rt / rt",
+    "computation": "48.5707 / 53.9793 = 0.9"
+  },
+  {
+    "claim": "Table 2: AdaMem (tol=0.0001) speedup",
+    "value": 0.9253941487012953,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "computed: full_rt / rt",
+    "computation": "48.5707 / 52.4865 = 0.9"
+  },
+  {
+    "claim": "Phase I/II: AdaMem (tol=0.001) avg_modes",
+    "value": 21.828343313373253,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "avg_modes",
+    "computation": "Direct read, avg_modes=21.8, max_modes=24"
+  },
+  {
+    "claim": "Phase I/II: AdaMem (tol=0.0001) avg_modes",
+    "value": 30.97005988023952,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase1_mittag_leffler_data.json",
+    "source_field": "avg_modes",
+    "computation": "Direct read, avg_modes=31.0, max_modes=32"
+  },
+  {
+    "claim": "Phase III: T",
+    "value": 6.0,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase3_dynamic_memory_adaptation_data.json",
+    "source_field": "T",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase III: num_steps (N)",
+    "value": 300,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase3_dynamic_memory_adaptation_data.json",
+    "source_field": "num_steps",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase III: beta",
+    "value": 0.85,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase3_dynamic_memory_adaptation_data.json",
+    "source_field": "beta",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase III: tol",
+    "value": 0.001,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase3_dynamic_memory_adaptation_data.json",
+    "source_field": "tol",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase III: avg_modes",
+    "value": 22.219269102990033,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase3_dynamic_memory_adaptation_data.json",
+    "source_field": "avg_modes",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase III: max_modes",
+    "value": 24,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase3_dynamic_memory_adaptation_data.json",
+    "source_field": "max_modes",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase III: num_adaptations",
+    "value": 4,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase3_dynamic_memory_adaptation_data.json",
+    "source_field": "num_adaptations",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase III: mode evolution direction",
+    "value": "monotonic expansion",
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase3_dynamic_memory_adaptation_data.json",
+    "source_field": "expansion_events",
+    "computation": "K trajectory: [8, 12, 16, 20, 24] \u2192 monotonic expansion"
+  },
+  {
+    "claim": "Phase III: mode trajectory",
+    "value": "[8, 12, 16, 20, 24]",
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase3_dynamic_memory_adaptation_data.json",
+    "source_field": "expansion_events",
+    "computation": "K_old of first event then K_new of each: [8, 12, 16, 20, 24]"
+  },
+  {
+    "claim": "Table 3: Proposed (R^T) final_loss_mean",
+    "value": 0.0022277463019139757,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_neural_fde_training.json",
+    "source_field": "proposed.final_loss_mean",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 3: Proposed (R^T) final_loss_std",
+    "value": 0.000278580284626228,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_neural_fde_training.json",
+    "source_field": "proposed.final_loss_std",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 3: Proposed (R^T) gradient_error_mean",
+    "value": 1.6993748557902175,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_neural_fde_training.json",
+    "source_field": "proposed.gradient_error_mean",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 3: Proposed (R^T) gradient_error_std",
+    "value": 0.9947105145022218,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_neural_fde_training.json",
+    "source_field": "proposed.gradient_error_std",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 3: Proposed (R^T) seeds where final_loss > initial_loss",
+    "value": 0,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_neural_fde_training.json",
+    "source_field": "loss_histories",
+    "computation": "Count of seeds where loss_histories[-1] > loss_histories[0]: 0/5"
+  },
+  {
+    "claim": "Table 3: Naive (No R^T) final_loss_mean",
+    "value": 0.0024761038319583645,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_neural_fde_training.json",
+    "source_field": "naive.final_loss_mean",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 3: Naive (No R^T) final_loss_std",
+    "value": 0.0006083295558443534,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_neural_fde_training.json",
+    "source_field": "naive.final_loss_std",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 3: Naive (No R^T) gradient_error_mean",
+    "value": 69.20937102096742,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_neural_fde_training.json",
+    "source_field": "naive.gradient_error_mean",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 3: Naive (No R^T) gradient_error_std",
+    "value": 8.893238216382054,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_neural_fde_training.json",
+    "source_field": "naive.gradient_error_std",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 3: Naive (No R^T) seeds where final_loss > initial_loss",
+    "value": 0,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_neural_fde_training.json",
+    "source_field": "loss_histories",
+    "computation": "Count of seeds where loss_histories[-1] > loss_histories[0]: 0/5"
+  },
+  {
+    "claim": "Table 3: gradient error reduction factor",
+    "value": 40.7263711035578,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase4_neural_fde_training.json",
+    "source_field": "gradient_error_reduction_factor",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=500 full_history_time (Measured)",
+    "value": 0.07566299999598414,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "full_history_times[0]",
+    "computation": "Direct read. Measured"
+  },
+  {
+    "claim": "Table 4: N=500 fixed_soe_time",
+    "value": 0.0469687000149861,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "fixed_soe_times[0]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=500 adamem_time",
+    "value": 0.07939870000700466,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_times[0]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=500 adamem_avg_modes",
+    "value": 29.293413173652695,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_avg_modes[0]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=500 speedup",
+    "value": 0.9529501111392131,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "computed: full/adamem",
+    "computation": "0.0757 / 0.0794 = 1.0"
+  },
+  {
+    "claim": "Table 4: N=1000 full_history_time (Measured)",
+    "value": 0.16840100000263192,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "full_history_times[1]",
+    "computation": "Direct read. Measured"
+  },
+  {
+    "claim": "Table 4: N=1000 fixed_soe_time",
+    "value": 0.09631429999717511,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "fixed_soe_times[1]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=1000 adamem_time",
+    "value": 0.18520190002163872,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_times[1]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=1000 adamem_avg_modes",
+    "value": 30.645354645354644,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_avg_modes[1]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=1000 speedup",
+    "value": 0.9092833279947786,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "computed: full/adamem",
+    "computation": "0.1684 / 0.1852 = 0.9"
+  },
+  {
+    "claim": "Table 4: N=2500 full_history_time (Measured)",
+    "value": 0.6834620000154246,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "full_history_times[2]",
+    "computation": "Direct read. Measured"
+  },
+  {
+    "claim": "Table 4: N=2500 fixed_soe_time",
+    "value": 0.23870899999747053,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "fixed_soe_times[2]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=2500 adamem_time",
+    "value": 0.39044939997256733,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_times[2]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=2500 adamem_avg_modes",
+    "value": 31.4578168732507,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_avg_modes[2]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=2500 speedup",
+    "value": 1.7504496102784228,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "computed: full/adamem",
+    "computation": "0.6835 / 0.3904 = 1.8"
+  },
+  {
+    "claim": "Table 4: N=5000 full_history_time (Projected (O(N^2) extrapolation))",
+    "value": 2.7338480000616983,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "full_history_times[3]",
+    "computation": "Direct read. Projected (O(N^2) extrapolation)"
+  },
+  {
+    "claim": "Table 4: N=5000 fixed_soe_time",
+    "value": 0.46726089998264797,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "fixed_soe_times[3]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=5000 adamem_time",
+    "value": 0.8072535000101198,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_times[3]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=5000 adamem_avg_modes",
+    "value": 31.72885422915417,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_avg_modes[3]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=5000 speedup",
+    "value": 3.3866040841289964,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "computed: full/adamem",
+    "computation": "2.7338 / 0.8073 = 3.4"
+  },
+  {
+    "claim": "Table 4: N=10000 full_history_time (Projected (O(N^2) extrapolation))",
+    "value": 10.935392000246793,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "full_history_times[4]",
+    "computation": "Direct read. Projected (O(N^2) extrapolation)"
+  },
+  {
+    "claim": "Table 4: N=10000 fixed_soe_time",
+    "value": 1.032658000010997,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "fixed_soe_times[4]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=10000 adamem_time",
+    "value": 1.6000063999963459,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_times[4]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=10000 adamem_avg_modes",
+    "value": 31.864413558644134,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_avg_modes[4]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=10000 speedup",
+    "value": 6.834592661799207,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "computed: full/adamem",
+    "computation": "10.9354 / 1.6000 = 6.8"
+  },
+  {
+    "claim": "Table 4: N=25000 full_history_time (Projected (O(N^2) extrapolation))",
+    "value": 68.34620000154246,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "full_history_times[5]",
+    "computation": "Direct read. Projected (O(N^2) extrapolation)"
+  },
+  {
+    "claim": "Table 4: N=25000 fixed_soe_time",
+    "value": 2.491714499978116,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "fixed_soe_times[5]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=25000 adamem_time",
+    "value": 3.8297087000100873,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_times[5]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=25000 adamem_avg_modes",
+    "value": 31.94576216951322,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_avg_modes[5]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=25000 speedup",
+    "value": 17.846318181161518,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "computed: full/adamem",
+    "computation": "68.3462 / 3.8297 = 17.8"
+  },
+  {
+    "claim": "Table 4: N=50000 full_history_time (Projected (O(N^2) extrapolation))",
+    "value": 273.3848000061698,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "full_history_times[6]",
+    "computation": "Direct read. Projected (O(N^2) extrapolation)"
+  },
+  {
+    "claim": "Table 4: N=50000 fixed_soe_time",
+    "value": 4.618850500002736,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "fixed_soe_times[6]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=50000 adamem_time",
+    "value": 6.366327299998375,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_times[6]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=50000 adamem_avg_modes",
+    "value": 31.972880542389152,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_avg_modes[6]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=50000 speedup",
+    "value": 42.94230992588766,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "computed: full/adamem",
+    "computation": "273.3848 / 6.3663 = 42.9"
+  },
+  {
+    "claim": "Table 4: N=100000 full_history_time (Projected (O(N^2) extrapolation))",
+    "value": 1093.5392000246793,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "full_history_times[7]",
+    "computation": "Direct read. Projected (O(N^2) extrapolation)"
+  },
+  {
+    "claim": "Table 4: N=100000 fixed_soe_time",
+    "value": 8.937368100014282,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "fixed_soe_times[7]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=100000 adamem_time",
+    "value": 14.234681000001729,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_times[7]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=100000 adamem_avg_modes",
+    "value": 31.986440135598645,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "adamem_avg_modes[7]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 4: N=100000 speedup",
+    "value": 76.8221781734727,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase6_long_horizon_scaling_data.json",
+    "source_field": "computed: full/adamem",
+    "computation": "1093.5392 / 14.2347 = 76.8"
+  },
+  {
+    "claim": "Phase VII Fixed SOE K=4 error",
+    "value": 0.34929296928798226,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "fixed_soe[K=4].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Fixed SOE K=8 error",
+    "value": 0.1397146287844438,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "fixed_soe[K=8].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Fixed SOE K=12 error",
+    "value": 0.0719685415458217,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "fixed_soe[K=12].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Fixed SOE K=16 error",
+    "value": 0.02945030351197232,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "fixed_soe[K=16].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Fixed SOE K=20 error",
+    "value": 0.009112622025259183,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "fixed_soe[K=20].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Fixed SOE K=24 error",
+    "value": 0.0027158252661086926,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "fixed_soe[K=24].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Fixed SOE K=28 error",
+    "value": 0.002145084014563012,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "fixed_soe[K=28].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Fixed SOE K=32 error",
+    "value": 0.0022325243957668464,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "fixed_soe[K=32].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Fixed SOE K=36 error",
+    "value": 0.00200286798339791,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "fixed_soe[K=36].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Fixed SOE K=40 error",
+    "value": 0.0016941124656136533,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "fixed_soe[K=40].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=0.01 error",
+    "value": 0.07096947921956409,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=0.01].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=0.01 avg_modes",
+    "value": 11.311720698254364,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=0.01].avg_modes",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=0.005 error",
+    "value": 0.027267746628856716,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=0.005].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=0.005 avg_modes",
+    "value": 11.810473815461346,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=0.005].avg_modes",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=0.001 error",
+    "value": 0.018450435273756675,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=0.001].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=0.001 avg_modes",
+    "value": 20.468827930174562,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=0.001].avg_modes",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=0.0005 error",
+    "value": 0.02271532955822459,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=0.0005].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=0.0005 avg_modes",
+    "value": 23.261845386533665,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=0.0005].avg_modes",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=0.0001 error",
+    "value": 0.024446772470789066,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=0.0001].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=0.0001 avg_modes",
+    "value": 40.36907730673317,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=0.0001].avg_modes",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=5e-05 error",
+    "value": 0.02434075034170976,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=5e-05].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=5e-05 avg_modes",
+    "value": 40.36907730673317,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=5e-05].avg_modes",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=1e-05 error",
+    "value": 0.024055734123457084,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=1e-05].error",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII Adaptive tol=1e-05 avg_modes",
+    "value": 40.45885286783042,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[tol=1e-05].avg_modes",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Phase VII grad_err at tol=0.01",
+    "value": 8.770405634752537,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "gradient_fidelity[tol=0.01].grad_err",
+    "computation": "0.087704 * 100 = 8.77%"
+  },
+  {
+    "claim": "Phase VII grad_err at tol=0.005",
+    "value": 4.363740191967006,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "gradient_fidelity[tol=0.005].grad_err",
+    "computation": "0.043637 * 100 = 4.36%"
+  },
+  {
+    "claim": "Phase VII grad_err at tol=0.001",
+    "value": 5.429056899984387,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "gradient_fidelity[tol=0.001].grad_err",
+    "computation": "0.054291 * 100 = 5.43%"
+  },
+  {
+    "claim": "Phase VII grad_err at tol=0.0005",
+    "value": 5.539037713063013,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "gradient_fidelity[tol=0.0005].grad_err",
+    "computation": "0.055390 * 100 = 5.54%"
+  },
+  {
+    "claim": "Phase VII grad_err at tol=0.0001",
+    "value": 5.003733235889239,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "gradient_fidelity[tol=0.0001].grad_err",
+    "computation": "0.050037 * 100 = 5.00%"
+  },
+  {
+    "claim": "Phase VII gradient error range (%)",
+    "value": "4.36% to 8.77%",
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "gradient_fidelity[*].grad_err",
+    "computation": "min=4.36%, max=8.77%"
+  },
+  {
+    "claim": "Phase VII avg_modes range",
+    "value": "11.3 to 40.5",
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\pareto_frontier_data.json",
+    "source_field": "adaptive_soe[*].avg_modes",
+    "computation": "min=11.3, max=40.5"
+  },
+  {
+    "claim": "Table 5: Fixed beta mean",
+    "value": 0.5,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\previous_results\\phase8_noise_sweep\\phase8_multiseed_noise0.01.json",
+    "source_field": "mode=fixed, final_beta",
+    "computation": "mean of [0.5, 0.5, 0.5, 0.5, 0.5]"
+  },
+  {
+    "claim": "Table 5: Oracle beta mean",
+    "value": 0.75,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\previous_results\\phase8_noise_sweep\\phase8_multiseed_noise0.01.json",
+    "source_field": "mode=oracle, final_beta",
+    "computation": "mean of [0.75, 0.75, 0.75, 0.75, 0.75]"
+  },
+  {
+    "claim": "Table 5: Joint beta0=0.9 beta_mean",
+    "value": 0.7600234270095825,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\previous_results\\phase8_noise_sweep\\phase8_multiseed_noise0.01.json",
+    "source_field": "mode=joint, beta0=0.9, final_beta",
+    "computation": "mean of [0.7582713961601257, 0.7608503699302673, 0.7623113393783569, 0.7545003890991211, 0.7641836404800415]"
+  },
+  {
+    "claim": "Table 5: Joint beta0=0.5 beta_mean",
+    "value": 0.7393544435501098,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\previous_results\\phase8_noise_sweep\\phase8_multiseed_noise0.01.json",
+    "source_field": "mode=joint, beta0=0.5, final_beta",
+    "computation": "mean of [0.7395742535591125, 0.7449383735656738, 0.7384009957313538, 0.7344883680343628, 0.7393702268600464]"
+  },
+  {
+    "claim": "Table 5: Joint beta0=0.3 beta_mean",
+    "value": 0.7250304222106934,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\previous_results\\phase8_noise_sweep\\phase8_multiseed_noise0.01.json",
+    "source_field": "mode=joint, beta0=0.3, final_beta",
+    "computation": "mean of [0.7250339984893799, 0.7337660193443298, 0.7217768430709839, 0.7201862335205078, 0.7243890166282654]"
+  },
+  {
+    "claim": "Table 5: stride N=60 beta_mean",
+    "value": 0.7368545333544413,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\previous_results\\phase8_stride_discretization\\phase8_multiseed_noise0_N60_tol0.001_K24.json",
+    "source_field": "mode=beta_only, final_beta",
+    "computation": "mean of ['0.7368', '0.7369', '0.7369', '0.7368', '0.7369', '0.7369', '0.7368', '0.7369', '0.7369', '0.7368', '0.7369', '0.7369', '0.7368', '0.7369', '0.7369']"
+  },
+  {
+    "claim": "Table 5: stride N=120 beta_mean",
+    "value": 0.7409550547599792,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\previous_results\\phase8_stride_discretization\\phase8_multiseed_noise0_N120_tol0.001_K24.json",
+    "source_field": "mode=beta_only, final_beta",
+    "computation": "mean of ['0.7410', '0.7410', '0.7410', '0.7410', '0.7410', '0.7410', '0.7410', '0.7410', '0.7410', '0.7410', '0.7410', '0.7410', '0.7410', '0.7410', '0.7410']"
+  },
+  {
+    "claim": "Table 5: stride N=300 beta_mean",
+    "value": 0.7469495137532552,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\previous_results\\phase8_stride_discretization\\phase8_multiseed_noise0_N300_tol0.001_K24.json",
+    "source_field": "mode=beta_only, final_beta",
+    "computation": "mean of ['0.7470', '0.7469', '0.7469', '0.7470', '0.7469', '0.7469', '0.7470', '0.7469', '0.7469', '0.7470', '0.7469', '0.7469', '0.7470', '0.7469', '0.7469']"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=50 uniform_error",
+    "value": 0.02852243984505365,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.5].uniform_errors[0]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=50 graded_error",
+    "value": 0.0010470235079663714,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.5].graded_errors[0]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=50 improvement",
+    "value": 27.24145124540006,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "2.8522e-02 / 1.0470e-03 = 27.24"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=100 uniform_error",
+    "value": 0.022642306453135475,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.5].uniform_errors[1]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=100 graded_error",
+    "value": 0.0003709162196115501,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.5].graded_errors[1]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=100 improvement",
+    "value": 61.04426082215578,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "2.2642e-02 / 3.7092e-04 = 61.04"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=200 uniform_error",
+    "value": 0.017522883125953626,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.5].uniform_errors[2]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=200 graded_error",
+    "value": 0.00017791810415229703,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.5].graded_errors[2]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=200 improvement",
+    "value": 98.48847709704755,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "1.7523e-02 / 1.7792e-04 = 98.49"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=400 uniform_error",
+    "value": 0.013252867991304762,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.5].uniform_errors[3]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=400 graded_error",
+    "value": 0.00011283080628055053,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.5].graded_errors[3]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=400 improvement",
+    "value": 117.45788608788179,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "1.3253e-02 / 1.1283e-04 = 117.46"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=800 uniform_error",
+    "value": 0.009842306110291132,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.5].uniform_errors[4]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=800 graded_error",
+    "value": 0.0001119124072629929,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.5].graded_errors[4]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.5, N=800 improvement",
+    "value": 87.94651416229323,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "9.8423e-03 / 1.1191e-04 = 87.95"
+  },
+  {
+    "claim": "Table 6: beta=0.5 slope_uniform",
+    "value": -0.384277453460297,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.5].slope_uniform",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.5 slope_graded",
+    "value": -0.816863621127381,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.5].slope_graded",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=50 uniform_error",
+    "value": 0.005890552522098691,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.7].uniform_errors[0]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=50 graded_error",
+    "value": 0.0007042982643516993,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.7].graded_errors[0]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=50 improvement",
+    "value": 8.363718640597384,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "5.8906e-03 / 7.0430e-04 = 8.36"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=100 uniform_error",
+    "value": 0.003963871511677541,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.7].uniform_errors[1]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=100 graded_error",
+    "value": 0.0002905043346661529,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.7].graded_errors[1]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=100 improvement",
+    "value": 13.644792998468736,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "3.9639e-03 / 2.9050e-04 = 13.64"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=200 uniform_error",
+    "value": 0.002589330086147479,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.7].uniform_errors[2]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=200 graded_error",
+    "value": 0.00021266607792436165,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.7].graded_errors[2]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=200 improvement",
+    "value": 12.175567027048002,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "2.5893e-03 / 2.1267e-04 = 12.18"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=400 uniform_error",
+    "value": 0.0016556656370753098,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.7].uniform_errors[3]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=400 graded_error",
+    "value": 0.00015815662163265465,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.7].graded_errors[3]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=400 improvement",
+    "value": 10.468519243670187,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "1.6557e-03 / 1.5816e-04 = 10.47"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=800 uniform_error",
+    "value": 0.0010438375000209055,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.7].uniform_errors[4]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=800 graded_error",
+    "value": 0.00024189238553667947,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.7].graded_errors[4]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.7, N=800 improvement",
+    "value": 4.315297059495999,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "1.0438e-03 / 2.4189e-04 = 4.32"
+  },
+  {
+    "claim": "Table 6: beta=0.7 slope_uniform",
+    "value": -0.6252510500198865,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.7].slope_uniform",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.7 slope_graded",
+    "value": -0.3960848074384542,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.7].slope_graded",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=50 uniform_error",
+    "value": 0.0019244196376131395,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.85].uniform_errors[0]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=50 graded_error",
+    "value": 0.001917191964984244,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.85].graded_errors[0]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=50 improvement",
+    "value": 1.0037699264136832,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "1.9244e-03 / 1.9172e-03 = 1.00"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=100 uniform_error",
+    "value": 0.0017475941357831815,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.85].uniform_errors[1]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=100 graded_error",
+    "value": 0.0017637158875463133,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.85].graded_errors[1]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=100 improvement",
+    "value": 0.9908592127127911,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "1.7476e-03 / 1.7637e-03 = 0.99"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=200 uniform_error",
+    "value": 0.0018136501136848393,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.85].uniform_errors[2]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=200 graded_error",
+    "value": 0.0017966099186965123,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.85].graded_errors[2]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=200 improvement",
+    "value": 1.0094846381571188,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "1.8137e-03 / 1.7966e-03 = 1.01"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=400 uniform_error",
+    "value": 0.0017648299122576816,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.85].uniform_errors[3]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=400 graded_error",
+    "value": 0.001796689753328029,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.85].graded_errors[3]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=400 improvement",
+    "value": 0.9822674777260052,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "1.7648e-03 / 1.7967e-03 = 0.98"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=800 uniform_error",
+    "value": 0.0017415480434144759,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.85].uniform_errors[4]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=800 graded_error",
+    "value": 0.001737809575200977,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.85].graded_errors[4]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.85, N=800 improvement",
+    "value": 1.0021512530871322,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "computed: uniform/graded",
+    "computation": "1.7415e-03 / 1.7378e-03 = 1.00"
+  },
+  {
+    "claim": "Table 6: beta=0.85 slope_uniform",
+    "value": -0.027394732908654712,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.85].slope_uniform",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 6: beta=0.85 slope_graded",
+    "value": -0.025672645877126636,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase9_graded_singularity_quenching.json",
+    "source_field": "runs[0.85].slope_graded",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 7: commensurate beta=0.90 MSE",
+    "value": 0.07203438878059387,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase10_incommensurate_multi_order.json",
+    "source_field": "commensurate_errors[0.90]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 7: commensurate beta=0.75 MSE",
+    "value": 0.01666661538183689,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase10_incommensurate_multi_order.json",
+    "source_field": "commensurate_errors[0.75]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 7: commensurate beta=0.60 MSE",
+    "value": 0.00103497295640409,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase10_incommensurate_multi_order.json",
+    "source_field": "commensurate_errors[0.60]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 7: recovered beta",
+    "value": [
+      0.8626493215560913,
+      0.6042634844779968
+    ],
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase10_incommensurate_multi_order.json",
+    "source_field": "final_recovered_beta",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 7: incommensurate final_loss",
+    "value": 4.111204907530919e-05,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase10_incommensurate_multi_order.json",
+    "source_field": "history_loss[-1]",
+    "computation": "Direct read"
+  },
+  {
+    "claim": "Table 7: improvement vs beta=0.60",
+    "value": 25.174443494855318,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase10_incommensurate_multi_order.json",
+    "source_field": "computed: commensurate/final_loss",
+    "computation": "1.0350e-03 / 4.1112e-05 = 25.2"
+  },
+  {
+    "claim": "Table 7: improvement vs beta=0.75",
+    "value": 405.39490871172416,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase10_incommensurate_multi_order.json",
+    "source_field": "computed: commensurate/final_loss",
+    "computation": "1.6667e-02 / 4.1112e-05 = 405.4"
+  },
+  {
+    "claim": "Table 7: improvement vs beta=0.90",
+    "value": 1752.1478593451045,
+    "source_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\AdaMem-FDE\\results\\phase10_incommensurate_multi_order.json",
+    "source_field": "computed: commensurate/final_loss",
+    "computation": "7.2034e-02 / 4.1112e-05 = 1752.1"
+  }
+]
